@@ -1,0 +1,20 @@
+[gd_scene load_steps=4 format=3 uid="uid://dpo40pxe3abgh"]
+
+[ext_resource type="Texture2D" uid="uid://tk5wrsv85yv4" path="res://BBCodeConverterForDotNetGodot/ExternalAssets/CC BY 40/fontawesome free font/rainbow-solid.svg" id="1_dgtda"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tfgse"]
+bg_color = Color(0.6, 0.6, 0.6, 0.392157)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1yneh"]
+
+[node name="Button" type="Button"]
+custom_minimum_size = Vector2(25, 25)
+focus_mode = 0
+theme_override_styles/hover = SubResource("StyleBoxFlat_tfgse")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_1yneh")
+icon = ExtResource("1_dgtda")
+expand_icon = true
