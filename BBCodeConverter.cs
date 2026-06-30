@@ -134,7 +134,9 @@ public partial class BBCodeConverter : Node
     string EncaseWith(string text, string encase, bool inverse = false)
     {
         if (inverse)
+        {
             return $"[/{encase}]{text}[{encase}]";
+        }
         return $"[{encase}]{text}[/{encase}]";
     }
 
@@ -152,13 +154,19 @@ public partial class BBCodeConverter : Node
         for (int i = index - 1; i >= 0; i--)
         {
             if (text[i] != ']')
+            {
                 continue;
+            }
             int closeStart = i - closeTag.Length + 1;
             if (closeStart >= 0 && text.Substring(closeStart, closeTag.Length) == closeTag)
+            {
                 return false;
+            }
             int openStart = i - openTag.Length + 1;
             if (openStart >= 0 && text.Substring(openStart, openTag.Length) == openTag)
+            {
                 return true;
+            }
         }
         return false;
     }
