@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://clnbfmm8cevjv"]
+[gd_scene load_steps=19 format=3 uid="uid://clnbfmm8cevjv"]
 
 [ext_resource type="Texture2D" uid="uid://cx5ntgnkpyy2y" path="res://BBCodeConverterForDotNetGodot/ExternalAssets/CC BY 40/fontawesome free font/bold-solid-full.svg" id="1_5qf8f"]
 [ext_resource type="Script" uid="uid://i0jt2mh8foos" path="res://BBCodeConverterForDotNetGodot/BBCodeConverter.cs" id="1_p0lkg"]
@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://dpo40pxe3abgh" path="res://BBCodeConverterForDotNetGodot/Prefabs/TextEditButton.tscn" id="2_x35xc"]
 [ext_resource type="Texture2D" uid="uid://bayv0oin8tdup" path="res://BBCodeConverterForDotNetGodot/ExternalAssets/CC BY 40/fontawesome free font/ellipsis-vertical-solid-full.svg" id="3_rsb3u"]
 [ext_resource type="Texture2D" uid="uid://dfspaxedkpcq3" path="res://BBCodeConverterForDotNetGodot/ExternalAssets/CC BY 40/fontawesome free font/list-ul-solid-full.svg" id="4_b2jt7"]
+[ext_resource type="Texture2D" uid="uid://7rj701uod0bc" path="res://BBCodeConverterForDotNetGodot/ExternalAssets/CC BY 40/fontawesome free font/strikethrough-solid-full.svg" id="5_aukb5"]
 [ext_resource type="Texture2D" uid="uid://dw7c5clm410cw" path="res://BBCodeConverterForDotNetGodot/ExternalAssets/CC BY 40/fontawesome free font/align-left-solid-full.svg" id="5_t4h07"]
 [ext_resource type="Texture2D" uid="uid://cmeoc7g2xvtwl" path="res://BBCodeConverterForDotNetGodot/ExternalAssets/CC BY 40/fontawesome free font/link-solid-full.svg" id="6_j7j6f"]
 [ext_resource type="Texture2D" uid="uid://3gt75wqqnl6u" path="res://BBCodeConverterForDotNetGodot/ExternalAssets/CC BY 40/fontawesome free font/image-solid-full.svg" id="7_v2e26"]
@@ -61,6 +62,10 @@ icon = ExtResource("1_5qf8f")
 [node name="Italic" parent="HBoxContainer/Input/HBoxContainer" instance=ExtResource("2_x35xc")]
 layout_mode = 2
 icon = ExtResource("2_bqiec")
+
+[node name="Strikethrough" parent="HBoxContainer/Input/HBoxContainer" instance=ExtResource("2_x35xc")]
+layout_mode = 2
+icon = ExtResource("5_aukb5")
 
 [node name="More fonts" parent="HBoxContainer/Input/HBoxContainer" instance=ExtResource("2_x35xc")]
 layout_mode = 2
@@ -130,5 +135,10 @@ layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_a1rmq")
 bbcode_enabled = true
 
-[connection signal="button_down" from="HBoxContainer/Input/HBoxContainer/Bold" to="HBoxContainer/Controller" method="MakeBold"]
+[connection signal="button_down" from="HBoxContainer/Input/HBoxContainer/Bold" to="HBoxContainer/Controller" method="ToggleBold"]
+[connection signal="button_down" from="HBoxContainer/Input/HBoxContainer/Italic" to="HBoxContainer/Controller" method="ToggleItalic"]
+[connection signal="button_down" from="HBoxContainer/Input/HBoxContainer/Strikethrough" to="HBoxContainer/Controller" method="ToggleStrikethrough"]
+[connection signal="button_down" from="HBoxContainer/Input/HBoxContainer/Alignment left" to="HBoxContainer/Controller" method="ToggleLeft"]
+[connection signal="button_down" from="HBoxContainer/Input/HBoxContainer/Alignment center" to="HBoxContainer/Controller" method="ToggleCenter"]
+[connection signal="button_down" from="HBoxContainer/Input/HBoxContainer/Alignment block" to="HBoxContainer/Controller" method="ToggleFill"]
 [connection signal="text_changed" from="HBoxContainer/Input/TextEdit" to="HBoxContainer/Controller" method="TextUpdated"]

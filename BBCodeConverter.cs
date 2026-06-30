@@ -19,9 +19,47 @@ public partial class BBCodeConverter : Node
     /// <summary>
     /// Toggles bold formatting on the current selection.
     /// </summary>
-    public void MakeBold()
+    public void ToggleBold()
     {
         EncaseSelectedWith("b");
+    }
+
+    /// <summary>
+    /// Toggles bold formatting on the current selection.
+    /// </summary>
+    public void ToggleItalic()
+    {
+        EncaseSelectedWith("i");
+    }
+
+    public void ToggleUnderlined()
+    {
+        EncaseSelectedWith("u");
+    }
+
+    public void ToggleStrikethrough()
+    {
+        EncaseSelectedWith("s");
+    }
+
+    public void ToggleCenter()
+    {
+        EncaseSelectedWith("center");
+    }
+
+    public void ToggleLeft()
+    {
+        EncaseSelectedWith("left");
+    }
+
+    public void ToggleRight()
+    {
+        EncaseSelectedWith("right");
+    }
+
+    public void ToggleFill()
+    {
+        EncaseSelectedWith("fill");
     }
 
     /// <summary>
