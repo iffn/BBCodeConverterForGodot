@@ -62,8 +62,22 @@ public partial class BBCodeConverter : Node
         EncaseSelectedWith("fill");
     }
 
+    public void ToggleList()
+    {
+        bool hasSelection = linkedInput.HasSelection();
+        int selStart = hasSelection
+            ? tagEditor.LineColToOffset(linkedInput.Text, linkedInput.GetSelectionFromLine(), linkedInput.GetSelectionFromColumn())
+            : tagEditor.LineColToOffset(linkedInput.Text, linkedInput.GetCaretLine(), linkedInput.GetCaretColumn());
+        int selEnd = hasSelection
+            ? tagEditor.LineColToOffset(linkedInput.Text, linkedInput.GetSelectionToLine(), linkedInput.GetSelectionToColumn())
+            : selStart;
+        TagEditResult edit = tagEditor.ToggleList(linkedInput.Text, hasSelection, selStart, selEnd);
+        ApplyEdit(edit);
+        TransferText();
+    }
+
     /// <summary>
-    /// Keeps the output preview up to date as the user edits the input.
+    /// Entry point for signals. Keeps the output preview up to date as the user edits the input.
     /// </summary>
     public void TextUpdated()
     {

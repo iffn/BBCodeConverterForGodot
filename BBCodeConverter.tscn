@@ -135,9 +135,24 @@ layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_a1rmq")
 bbcode_enabled = true
 
+[node name="ToDo" type="RichTextLabel" parent="HBoxContainer/Output"]
+custom_minimum_size = Vector2(0, 300)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_a1rmq")
+bbcode_enabled = true
+text = "[b]ToDo:[/b]
+[ul]
+Check if bullet lists work reliably in different projects.
+Implement lists. Adding ul somehow failed to add bullets until the bullet symbol was manually pasted into the text field.	
+Fix StartA StartB EndA EndB being generated.
+Add cleanup function.
+Add undo and redo.
+[/ul]"
+
 [connection signal="button_down" from="HBoxContainer/Input/HBoxContainer/Bold" to="HBoxContainer/Controller" method="ToggleBold"]
 [connection signal="button_down" from="HBoxContainer/Input/HBoxContainer/Italic" to="HBoxContainer/Controller" method="ToggleItalic"]
 [connection signal="button_down" from="HBoxContainer/Input/HBoxContainer/Strikethrough" to="HBoxContainer/Controller" method="ToggleStrikethrough"]
+[connection signal="button_down" from="HBoxContainer/Input/HBoxContainer/Bullet list" to="HBoxContainer/Controller" method="ToggleList"]
 [connection signal="button_down" from="HBoxContainer/Input/HBoxContainer/Alignment left" to="HBoxContainer/Controller" method="ToggleLeft"]
 [connection signal="button_down" from="HBoxContainer/Input/HBoxContainer/Alignment center" to="HBoxContainer/Controller" method="ToggleCenter"]
 [connection signal="button_down" from="HBoxContainer/Input/HBoxContainer/Alignment block" to="HBoxContainer/Controller" method="ToggleFill"]

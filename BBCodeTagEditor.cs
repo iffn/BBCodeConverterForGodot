@@ -137,6 +137,109 @@ public class BBCodeTagEditor
     }
 
     /// <summary>
+    /// Wraps the selected lines in a [ul] list. If there is no selection, the current
+    /// line is treated as a single list item. If the selection is already wrapped in
+    /// [ul], the tags are removed instead.
+    /// </summary>
+    /// <param name="fullText">The complete current text.</param>
+    /// <param name="hasSelection">Whether there is an active selection.</param>
+    /// <param name="selStart">Flat offset of the selection start (or caret position if none).</param>
+    /// <param name="selEnd">Flat offset of the selection end (ignored if hasSelection is false).</param>
+    public TagEditResult ToggleList(string fullText, bool hasSelection, int selStart, int selEnd)
+    {
+        // With no selection, treat the current line as the single item
+        if (!hasSelection)
+        {
+            int lineStart = fullText.LastIndexOf('\n', Math.Max(0, selStart - 1));
+            lineStart = lineStart == -1 ? 0 : lineStart + 1;
+            int lineEnd = fullText.IndexOf('\n', selStart);
+            lineEnd = lineEnd == -1 ? fullText.Length : lineEnd;
+            selStart = lineStart;
+            selEnd = lineEnd;
+        }
+        else
+        {
+            // Expand selStart back to the beginning of its line
+            int lineStart = fullText.LastIndexOf('\n', Math.Max(0, selStart - 1));
+            selStart = lineStart == -1 ? 0 : lineStart + 1;
+
+            // Expand selEnd forward to the end of its line
+            int lineEnd = fullText.IndexOf('\n', selEnd);
+            selEnd = lineEnd == -1 ? fullText.Length : lineEnd;
+        }
+
+        string openTag = "[ul]";
+        string closeTag = "[/ul]";
+
+        // Check if already wrapped in [ul] just outside the expanded selection -> strip
+        bool hasOpenBefore = selStart >= openTag.Length + 1
+            && fullText.Substring(selStart - openTag.Length - 1, openTag.Length + 1) == openTag + "\n";
+        bool hasCloseAfter = selEnd + closeTag.Length + 1 <= fullText.Length
+            && fullText.Substring(selEnd, closeTag.Length + 1) == "\n" + closeTag;
+        if (hasOpenBefore && hasCloseAfter)
+        {
+            string newText = fullText.Remove(selEnd, closeTag.Length + 1)
+                                      .Remove(selStart - openTag.Length - 1, openTag.Length + 1);
+            int newStart = selStart - openTag.Length - 1;
+            return new TagEditResult
+            {
+                NewText = newText,
+                SelectionStart = newStart,
+                SelectionEnd = newStart + (selEnd - selStart)
+            };
+        }
+
+        // Wrap: insert [ul]\n before selStart and \n[/ul] after selEnd
+        string result = fullText.Insert(selEnd, "\n" + closeTag)
+                                 .Insert(selStart, openTag + "\n");
+        int newSelStart = selStart + openTag.Length + 1;
+        return new TagEditResult
+        {
+            NewText = result,
+            SelectionStart = newSelStart,
+            SelectionEnd = newSelStart + (selEnd - selStart)
+        };
+    }
+
+
+    /// text, so selection math can treat the document as a single string regardless
+    /// of how many lines it has.
+    /// </summary>
+    public int LineColToOffset(string fullText, int line, int column)
+    {
+        string[] lines = fullText.Split('\n');
+        int offset = 0;
+        for (int i = 0; i < line; i++)
+        {
+            offset += lines[i].Length + 1; // +1 for the newline
+        }
+        return offset + column;
+    }
+
+    /// <summary>
+    /// Converts a flat character offset back into a line/column position within
+    /// the given text, the inverse of <see cref="LineColToOffset"/>.
+    /// </summary>
+    public (int line, int column) OffsetToLineCol(string text, int offset)
+    {
+        int line = 0;
+        int column = offset;
+        int searchPos = 0;
+        while (true)
+        {
+            int newlineIndex = text.IndexOf('\n', searchPos);
+            if (newlineIndex == -1 || newlineIndex >= offset)
+            {
+                break;
+            }
+            line++;
+            column = offset - (newlineIndex + 1);
+            searchPos = newlineIndex + 1;
+        }
+        return (line, column);
+    }
+
+    /// <summary>
     /// Determines whether a position in the text already falls inside an existing
     /// tag of the given type, so formatting can be toggled rather than blindly applied.
     /// </summary>
