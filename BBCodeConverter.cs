@@ -77,12 +77,12 @@ public partial class BBCodeConverter : Node
     void EncaseSelectedWith(string encase)
     {
         bool hasSelection = linkedInput.HasSelection();
-        int selStart = hasSelection ? linkedInput.GetSelectionFromColumn() : linkedInput.GetCaretColumn();
+        int selStart = hasSelection
+            ? LineColToOffset(linkedInput.GetSelectionFromLine(), linkedInput.GetSelectionFromColumn())
+            : LineColToOffset(linkedInput.GetCaretLine(), linkedInput.GetCaretColumn());
         string selectedText = hasSelection ? linkedInput.GetSelectedText() : "";
-
         TagEditResult edit = tagEditor.ToggleTag(linkedInput.Text, hasSelection, selStart, selectedText, encase);
         ApplyEdit(edit);
-
         TransferText();
     }
 
@@ -95,12 +95,45 @@ public partial class BBCodeConverter : Node
         linkedInput.Text = edit.NewText;
         if (edit.SelectionStart == edit.SelectionEnd)
         {
-            linkedInput.SetCaretColumn(edit.SelectionStart);
+            (int line, int column) = OffsetToLineCol(edit.NewText, edit.SelectionStart);
+            linkedInput.SetCaretLine(line);
+            linkedInput.SetCaretColumn(column);
         }
         else
         {
-            linkedInput.Select(0, edit.SelectionStart, 0, edit.SelectionEnd);
+            (int fromLine, int fromColumn) = OffsetToLineCol(edit.NewText, edit.SelectionStart);
+            (int toLine, int toColumn) = OffsetToLineCol(edit.NewText, edit.SelectionEnd);
+            linkedInput.Select(fromLine, fromColumn, toLine, toColumn);
         }
+    }
+
+    int LineColToOffset(int line, int column)
+    {
+        int offset = 0;
+        for (int i = 0; i < line; i++)
+        {
+            offset += linkedInput.GetLine(i).Length + 1; // +1 for the newline
+        }
+        return offset + column;
+    }
+
+    (int line, int column) OffsetToLineCol(string text, int offset)
+    {
+        int line = 0;
+        int column = offset;
+        int searchPos = 0;
+        while (true)
+        {
+            int newlineIndex = text.IndexOf('\n', searchPos);
+            if (newlineIndex == -1 || newlineIndex >= offset)
+            {
+                break;
+            }
+            line++;
+            column = offset - (newlineIndex + 1);
+            searchPos = newlineIndex + 1;
+        }
+        return (line, column);
     }
 
     /// <summary>
