@@ -1,12 +1,14 @@
 using Godot;
 using System;
 
+/// <summary>
+/// Godot uses BBCode for Rich Text in text fields.
+/// This class provides the functions to add and manage the relevant tags.
+/// </summary>
 public partial class BBCodeConverter : Node
 {
     [Export] TextEdit linkedInput;
     [Export] RichTextLabel linkedOutput;
-
-    readonly BBCodeTagEditor tagEditor = new BBCodeTagEditor();
 
     /// <summary>
     /// Initializes the output preview to match the input when this node starts.
@@ -25,65 +27,92 @@ public partial class BBCodeConverter : Node
     }
 
     /// <summary>
-    /// Toggles bold formatting on the current selection.
+    /// Toggles italic formatting on the current selection.
     /// </summary>
     public void ToggleItalic()
     {
         EncaseSelectedWith("i");
     }
 
+    /// <summary>
+    /// Toggles underline formatting on the current selection.
+    /// </summary>
     public void ToggleUnderlined()
     {
         EncaseSelectedWith("u");
     }
 
+    /// <summary>
+    /// Toggles strikethrough formatting on the current selection.
+    /// </summary>
     public void ToggleStrikethrough()
     {
         EncaseSelectedWith("s");
     }
 
+    /// <summary>
+    /// Toggles center alignment on the current selection.
+    /// </summary>
     public void ToggleCenter()
     {
         EncaseSelectedWith("center");
     }
 
+    /// <summary>
+    /// Toggles left alignment on the current selection.
+    /// </summary>
     public void ToggleLeft()
     {
         EncaseSelectedWith("left");
     }
 
+    /// <summary>
+    /// Toggles right alignment on the current selection.
+    /// </summary>
     public void ToggleRight()
     {
         EncaseSelectedWith("right");
     }
 
+    /// <summary>
+    /// Toggles fill alignment on the current selection.
+    /// </summary>
     public void ToggleFill()
     {
         EncaseSelectedWith("fill");
     }
 
+    /// <summary>
+    /// Undoes the last action.
+    /// </summary>
     public void Undo()
     {
         linkedInput.Undo();
         TransferText();
     }
 
+    /// <summary>
+    /// Redoes the last undone action.
+    /// </summary>
     public void Redo()
     {
         linkedInput.Redo();
         TransferText();
     }
 
-    public void ToggleList()
+    /// <summary>
+    /// Wraps the current selection into a list layer.
+    /// </summary>
+    public void AddListLayer()
     {
         bool hasSelection = linkedInput.HasSelection();
         int selStart = hasSelection
-            ? tagEditor.LineColToOffset(linkedInput.Text, linkedInput.GetSelectionFromLine(), linkedInput.GetSelectionFromColumn())
-            : tagEditor.LineColToOffset(linkedInput.Text, linkedInput.GetCaretLine(), linkedInput.GetCaretColumn());
+            ? BBCodeUtility.IndexFromTextCoordinate(linkedInput.Text, linkedInput.GetSelectionFromLine(), linkedInput.GetSelectionFromColumn())
+            : BBCodeUtility.IndexFromTextCoordinate(linkedInput.Text, linkedInput.GetCaretLine(), linkedInput.GetCaretColumn());
         int selEnd = hasSelection
-            ? tagEditor.LineColToOffset(linkedInput.Text, linkedInput.GetSelectionToLine(), linkedInput.GetSelectionToColumn())
+            ? BBCodeUtility.IndexFromTextCoordinate(linkedInput.Text, linkedInput.GetSelectionToLine(), linkedInput.GetSelectionToColumn())
             : selStart;
-        TagEditResult edit = tagEditor.ToggleList(linkedInput.Text, hasSelection, selStart, selEnd);
+        TagEditResult edit = BBCodeUtility.AddListLayer(linkedInput.Text, hasSelection, selStart, selEnd);
         ApplyEdit(edit);
         TransferText();
     }
@@ -104,10 +133,10 @@ public partial class BBCodeConverter : Node
     {
         bool hasSelection = linkedInput.HasSelection();
         int selStart = hasSelection
-            ? LineColToOffset(linkedInput.GetSelectionFromLine(), linkedInput.GetSelectionFromColumn())
-            : LineColToOffset(linkedInput.GetCaretLine(), linkedInput.GetCaretColumn());
+            ? BBCodeUtility.IndexFromTextCoordinate(linkedInput.Text, linkedInput.GetSelectionFromLine(), linkedInput.GetSelectionFromColumn())
+            : BBCodeUtility.IndexFromTextCoordinate(linkedInput.Text, linkedInput.GetCaretLine(), linkedInput.GetCaretColumn());
         string selectedText = hasSelection ? linkedInput.GetSelectedText() : "";
-        TagEditResult edit = tagEditor.ToggleTag(linkedInput.Text, hasSelection, selStart, selectedText, encase);
+        TagEditResult edit = BBCodeUtility.ToggleTag(linkedInput.Text, hasSelection, selStart, selectedText, encase);
         ApplyEdit(edit);
         TransferText();
     }
@@ -118,8 +147,8 @@ public partial class BBCodeConverter : Node
     /// </summary>
     void ApplyEdit(TagEditResult edit)
     {
-        (int fromLine, int fromColumn) = tagEditor.OffsetToLineCol(edit.NewText, edit.SelectionStart);
-        (int toLine, int toColumn) = tagEditor.OffsetToLineCol(edit.NewText, edit.SelectionEnd);
+        (int fromLine, int fromColumn) = BBCodeUtility.TextCoordinateFromIndex(edit.NewText, edit.SelectionStart);
+        (int toLine, int toColumn) = BBCodeUtility.TextCoordinateFromIndex(edit.NewText, edit.SelectionEnd);
 
         linkedInput.BeginComplexOperation();
         linkedInput.SelectAll();
@@ -134,35 +163,6 @@ public partial class BBCodeConverter : Node
             linkedInput.Select(fromLine, fromColumn, toLine, toColumn);
         }
         linkedInput.EndComplexOperation();
-    }
-
-    int LineColToOffset(int line, int column)
-    {
-        int offset = 0;
-        for (int i = 0; i < line; i++)
-        {
-            offset += linkedInput.GetLine(i).Length + 1; // +1 for the newline
-        }
-        return offset + column;
-    }
-
-    (int line, int column) OffsetToLineCol(string text, int offset)
-    {
-        int line = 0;
-        int column = offset;
-        int searchPos = 0;
-        while (true)
-        {
-            int newlineIndex = text.IndexOf('\n', searchPos);
-            if (newlineIndex == -1 || newlineIndex >= offset)
-            {
-                break;
-            }
-            line++;
-            column = offset - (newlineIndex + 1);
-            searchPos = newlineIndex + 1;
-        }
-        return (line, column);
     }
 
     /// <summary>

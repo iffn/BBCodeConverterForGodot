@@ -157,7 +157,7 @@ Check if splitting
 [connection signal="button_down" from="HBoxContainer/Input/HBoxContainer/Bold" to="HBoxContainer/Controller" method="ToggleBold"]
 [connection signal="button_down" from="HBoxContainer/Input/HBoxContainer/Italic" to="HBoxContainer/Controller" method="ToggleItalic"]
 [connection signal="button_down" from="HBoxContainer/Input/HBoxContainer/Strikethrough" to="HBoxContainer/Controller" method="ToggleStrikethrough"]
-[connection signal="button_down" from="HBoxContainer/Input/HBoxContainer/Bullet list" to="HBoxContainer/Controller" method="ToggleList"]
+[connection signal="button_down" from="HBoxContainer/Input/HBoxContainer/Bullet list" to="HBoxContainer/Controller" method="AddListLayer"]
 [connection signal="button_down" from="HBoxContainer/Input/HBoxContainer/Alignment left" to="HBoxContainer/Controller" method="ToggleLeft"]
 [connection signal="button_down" from="HBoxContainer/Input/HBoxContainer/Alignment center" to="HBoxContainer/Controller" method="ToggleCenter"]
 [connection signal="button_down" from="HBoxContainer/Input/HBoxContainer/Alignment block" to="HBoxContainer/Controller" method="ToggleFill"]
