@@ -161,4 +161,6 @@ Check if splitting
 [connection signal="button_down" from="HBoxContainer/Input/HBoxContainer/Alignment left" to="HBoxContainer/Controller" method="ToggleLeft"]
 [connection signal="button_down" from="HBoxContainer/Input/HBoxContainer/Alignment center" to="HBoxContainer/Controller" method="ToggleCenter"]
 [connection signal="button_down" from="HBoxContainer/Input/HBoxContainer/Alignment block" to="HBoxContainer/Controller" method="ToggleFill"]
+[connection signal="button_down" from="HBoxContainer/Input/HBoxContainer/Undo" to="HBoxContainer/Controller" method="Undo"]
+[connection signal="button_down" from="HBoxContainer/Input/HBoxContainer/Redo" to="HBoxContainer/Controller" method="Redo"]
 [connection signal="text_changed" from="HBoxContainer/Input/TextEdit" to="HBoxContainer/Controller" method="TextUpdated"]

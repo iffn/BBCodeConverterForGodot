@@ -62,6 +62,18 @@ public partial class BBCodeConverter : Node
         EncaseSelectedWith("fill");
     }
 
+    public void Undo()
+    {
+        linkedInput.Undo();
+        TransferText();
+    }
+
+    public void Redo()
+    {
+        linkedInput.Redo();
+        TransferText();
+    }
+
     public void ToggleList()
     {
         bool hasSelection = linkedInput.HasSelection();
@@ -106,19 +118,22 @@ public partial class BBCodeConverter : Node
     /// </summary>
     void ApplyEdit(TagEditResult edit)
     {
-        linkedInput.Text = edit.NewText;
+        (int fromLine, int fromColumn) = tagEditor.OffsetToLineCol(edit.NewText, edit.SelectionStart);
+        (int toLine, int toColumn) = tagEditor.OffsetToLineCol(edit.NewText, edit.SelectionEnd);
+
+        linkedInput.BeginComplexOperation();
+        linkedInput.SelectAll();
+        linkedInput.InsertTextAtCaret(edit.NewText);
         if (edit.SelectionStart == edit.SelectionEnd)
         {
-            (int line, int column) = OffsetToLineCol(edit.NewText, edit.SelectionStart);
-            linkedInput.SetCaretLine(line);
-            linkedInput.SetCaretColumn(column);
+            linkedInput.SetCaretLine(fromLine);
+            linkedInput.SetCaretColumn(fromColumn);
         }
         else
         {
-            (int fromLine, int fromColumn) = OffsetToLineCol(edit.NewText, edit.SelectionStart);
-            (int toLine, int toColumn) = OffsetToLineCol(edit.NewText, edit.SelectionEnd);
             linkedInput.Select(fromLine, fromColumn, toLine, toColumn);
         }
+        linkedInput.EndComplexOperation();
     }
 
     int LineColToOffset(int line, int column)
