@@ -143,15 +143,10 @@ bbcode_enabled = true
 text = "[b]ToDo:[/b]
 Features & functionality
 [ul]
-Add undo and redo.
 Add cleanup all function.
 Add clear formatting for selection button.
 Fix StartA StartB EndA EndB being generated.
 Check if bullet lists work reliably in different projects. Adding ul somehow failed to add bullets until the bullet symbol was manually pasted into the text field.	
-[/ul]
-Architecture
-[ul]
-Check if splitting 
 [/ul]"
 
 [connection signal="button_down" from="HBoxContainer/Input/HBoxContainer/Bold" to="HBoxContainer/Controller" method="ToggleBold"]
