@@ -9,10 +9,10 @@ signal caret_moved(plain_index: int)
 
 var text_buffer: TextBuffer
 
-# Caret and Selection state (measured in plain-text index offsets)
 var caret_index: int = 0:
 	set(value):
-		var clamped_val = clampi(value, 0, text_buffer.plain_text.length() if text_buffer else 0)
+		var max_len: int = text_buffer.plain_text.length() if text_buffer else 0
+		var clamped_val: int = clampi(value, 0, max_len)
 		if caret_index != clamped_val or cached_caret_pos == Vector2.ZERO:
 			caret_index = clamped_val
 			_update_caret_position()
@@ -20,14 +20,11 @@ var caret_index: int = 0:
 
 var selection_start: int = -1
 var selection_end: int = -1
-
 var is_dragging: bool = false
 var caret_visible: bool = true
 var caret_timer: Timer
 
-# Cache last known valid caret screen position for warm-start color searching
 var last_known_caret_pos: Vector2 = Vector2.ZERO
-# Stores the finalized calculated screen position for passive rendering in _draw()
 var cached_caret_pos: Vector2 = Vector2.ZERO
 
 const CARET_WIDTH: float = 2.0
@@ -37,8 +34,7 @@ const CARET_COLOR: Color = Color(1.0, 1.0, 1.0, 0.9)
 func _ready() -> void:
 	focus_mode = FOCUS_ALL
 	mouse_default_cursor_shape = CURSOR_IBEAM
-	
-	# Setup caret blinking timer
+
 	caret_timer = Timer.new()
 	caret_timer.wait_time = 0.53
 	caret_timer.autostart = true
@@ -47,8 +43,13 @@ func _ready() -> void:
 
 
 func setup(buffer: TextBuffer) -> void:
+	if text_buffer and text_buffer.text_changed.is_connected(_on_text_changed):
+		text_buffer.text_changed.disconnect(_on_text_changed)
+
 	text_buffer = buffer
-	text_buffer.text_changed.connect(_on_text_changed)
+	if text_buffer:
+		text_buffer.text_changed.connect(_on_text_changed)
+
 	_update_caret_position()
 
 
@@ -56,25 +57,18 @@ func _gui_input(event: InputEvent) -> void:
 	if not visible_label or not hit_test_viewport or not text_buffer:
 		return
 
-	if event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_LEFT:
-			if event.pressed:
-				grab_focus()
-				# Mouse click provides direct warm-start coordinate reference
-				last_known_caret_pos = event.position
-				var clicked_idx: int = hit_test_viewport.get_plain_index_at_position(event.position)
-				
-				if clicked_idx != -1:
-					self.caret_index = clicked_idx
-				else:
-					self.caret_index = text_buffer.plain_text.length()
-				
-				selection_start = caret_index
-				selection_end = caret_index
-				is_dragging = true
-				_reset_caret_blink()
-			else:
-				is_dragging = false
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			grab_focus()
+			last_known_caret_pos = event.position
+			var clicked_idx: int = hit_test_viewport.get_plain_index_at_position(event.position)
+			self.caret_index = clicked_idx if clicked_idx != -1 else text_buffer.plain_text.length()
+			selection_start = caret_index
+			selection_end = caret_index
+			is_dragging = true
+		else:
+			is_dragging = false
+		_reset_caret_blink()
 
 	elif event is InputEventMouseMotion and is_dragging:
 		last_known_caret_pos = event.position
@@ -90,54 +84,55 @@ func _gui_input(event: InputEvent) -> void:
 
 func _handle_keyboard_input(event: InputEventKey) -> void:
 	var plain_len: int = text_buffer.plain_text.length()
-	
+
 	match event.keycode:
 		KEY_LEFT:
+			if event.shift_pressed and selection_start == -1:
+				selection_start = caret_index
+			self.caret_index = max(0, caret_index - 1)
 			if event.shift_pressed:
-				if selection_start == -1:
-					selection_start = caret_index
-				self.caret_index = max(0, caret_index - 1)
 				selection_end = caret_index
 			else:
-				self.caret_index = max(0, caret_index - 1)
 				_clear_selection()
-				
+
 		KEY_RIGHT:
+			if event.shift_pressed and selection_start == -1:
+				selection_start = caret_index
+			self.caret_index = min(plain_len, caret_index + 1)
 			if event.shift_pressed:
-				if selection_start == -1:
-					selection_start = caret_index
-				self.caret_index = min(plain_len, caret_index + 1)
 				selection_end = caret_index
 			else:
-				self.caret_index = min(plain_len, caret_index + 1)
 				_clear_selection()
-				
+
 		KEY_BACKSPACE:
 			if _has_selection():
 				_delete_selection()
 			elif caret_index > 0:
-				text_buffer.delete_plain_range(caret_index - 1, caret_index)
-				self.caret_index -= 1
-				
+				var target_idx: int = caret_index - 1
+				text_buffer.delete_plain_range(target_idx, caret_index)
+				self.caret_index = target_idx
+
 		KEY_DELETE:
 			if _has_selection():
 				_delete_selection()
 			elif caret_index < plain_len:
 				text_buffer.delete_plain_range(caret_index, caret_index + 1)
-				
+
 		KEY_ENTER:
 			if _has_selection():
 				_delete_selection()
-			text_buffer.insert_text_at_plain_index(caret_index, "\n")
-			self.caret_index += 1
-			
+			var target_idx: int = caret_index
+			text_buffer.insert_text_at_plain_index(target_idx, "\n")
+			self.caret_index = target_idx + 1
+
 		_:
 			if event.unicode > 31 and event.unicode != 127:
 				var typed_char: String = String.chr(event.unicode)
 				if _has_selection():
 					_delete_selection()
-				text_buffer.insert_text_at_plain_index(caret_index, typed_char)
-				self.caret_index += typed_char.length()
+				var target_idx: int = caret_index
+				text_buffer.insert_text_at_plain_index(target_idx, typed_char)
+				self.caret_index = target_idx + typed_char.length()
 
 	_reset_caret_blink()
 
@@ -146,38 +141,23 @@ func _draw() -> void:
 	if not has_focus() or not text_buffer or not visible_label:
 		return
 
-	# Pure passive drawing using pre-calculated position
 	if caret_visible and caret_index >= 0:
-		var font_height: float = visible_label.get_theme_font_size("normal_font_size")
-		if font_height <= 0:
-			font_height = 16.0
+		var font_height: float = _get_font_height()
 		draw_line(cached_caret_pos, cached_caret_pos + Vector2(0, font_height), CARET_COLOR, CARET_WIDTH)
 
 
-## Triggers caret position recalculation only when index or text changes
 func _update_caret_position() -> void:
 	cached_caret_pos = _get_caret_screen_position(caret_index)
 	last_known_caret_pos = cached_caret_pos
 	queue_redraw()
 
 
-## Calculates caret position and prints diagnostic information
 func _get_caret_screen_position(idx: int) -> Vector2:
-	print("\n--- CARET POSITION SEARCH [New Index: %d] ---" % idx)
-
 	if not visible_label or not text_buffer or not hit_test_viewport:
-		print("  [ERROR] Missing editor dependencies!")
 		return Vector2.ZERO
 
-	var plain_len: int = text_buffer.plain_text.length()
-	if plain_len == 0 or idx <= 0:
-		print("  [INFO] At start of document (Index <= 0). Returning Vector2.ZERO")
+	if text_buffer.plain_text.length() == 0 or idx <= 0:
 		return Vector2.ZERO
-
-	var img: Image = hit_test_viewport.get_texture().get_image()
-	if not img:
-		print("  [ERROR] Unable to fetch SubViewport image texture! Falling back to last_known_caret_pos: ", last_known_caret_pos)
-		return last_known_caret_pos
 
 	var font = visible_label.get_theme_font("normal_font")
 	var font_size: int = visible_label.get_theme_font_size("normal_font_size")
@@ -187,89 +167,88 @@ func _get_caret_screen_position(idx: int) -> Vector2:
 	var target_char_idx: int = idx - 1
 	var target_char: String = text_buffer.plain_text[target_char_idx]
 
-	var printable_char: String = target_char
-	if target_char == "\n": printable_char = "\\n"
-	elif target_char == "\t": printable_char = "\\t"
-	elif target_char == " ": printable_char = "' '"
+	if target_char in [" ", "\t", "\n"]:
+		return _calculate_font_fallback_pos(idx, font, font_size)
 
-	print("  Target Char: '%s' | Char Idx: %d" % [printable_char, target_char_idx])
-
-	# 1. Handle whitespace/newlines using font string measurement fallback
-	if target_char == " " or target_char == "\t" or target_char == "\n":
-		var line_start: int = text_buffer.plain_text.rfind("\n", target_char_idx)
-		line_start = 0 if line_start == -1 else line_start + 1
-		var line_text: String = text_buffer.plain_text.substr(line_start, idx - line_start)
-		
-		var line_count: int = text_buffer.plain_text.substr(0, idx).count("\n")
-		var line_h: float = font.get_height(font_size) if font else font_size * 1.2
-		var adv_x: float = font.get_string_size(line_text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x if font else 0.0
-		
-		var whitespace_pos = Vector2(adv_x, line_count * line_h)
-		print("  [WHITESPACE DETECTED] Font estimated pos: ", whitespace_pos)
-		return whitespace_pos
-
-	# 2. Local Search Region setup
-	if target_char_idx < text_buffer.plain_text_ids.size():
+	var img: Image = hit_test_viewport.get_texture().get_image()
+	if img and target_char_idx < text_buffer.plain_text_ids.size():
 		var target_flat_id: int = text_buffer.plain_text_ids[target_char_idx]
 		var target_color: Color = hit_test_viewport._flat_id_to_color(target_flat_id)
 
-		print("  Target Flat ID: %d | Hex Color: #%s" % [target_flat_id, target_color.to_html(false)])
-		print("  Warm-Start Ref Pos: ", last_known_caret_pos)
+		# Search radially outward from the starting position
+		var found_pos: Vector2 = _find_target_color_radially(img, last_known_caret_pos, target_color)
+		if found_pos != Vector2.INF:
+			return found_pos
 
-		var search_cx: int = int(last_known_caret_pos.x)
-		var search_cy: int = int(last_known_caret_pos.y + (font_size * 0.5))
-
-		# Constrain search radius to a single glyph region
-		var radius_x: int = 25
-		var radius_y: int = 12
-
-		var min_x: int = clampi(search_cx - radius_x, 0, img.get_width() - 1)
-		var max_x: int = clampi(search_cx + radius_x, 0, img.get_width() - 1)
-		var min_y: int = clampi(search_cy - radius_y, 0, img.get_height() - 1)
-		var max_y: int = clampi(search_cy + radius_y, 0, img.get_height() - 1)
-
-		print("  Pixel Search Box: X[%d to %d], Y[%d to %d]" % [min_x, max_x, min_y, max_y])
-
-		var rightmost_x: int = -1
-		var matched_pixel_count: int = 0
-
-		# Strict color matching (0.001 tolerance)
-		for y in range(min_y, max_y + 1):
-			for x in range(min_x, max_x + 1):
-				var px_color: Color = img.get_pixel(x, y)
-				if px_color.a > 0.1 and _colors_match(px_color, target_color, 0.001):
-					matched_pixel_count += 1
-					if x > rightmost_x:
-						rightmost_x = x
-
-		print("  Pixels Matched: %d" % matched_pixel_count)
-
-		# Validate against matching dark background regions
-		if rightmost_x != -1 and matched_pixel_count < 200:
-			var line_count: int = text_buffer.plain_text.substr(0, idx).count("\n")
-			var line_h: float = font.get_height(font_size) if font else font_size * 1.2
-			var final_sampled_pos = Vector2(rightmost_x + 1.0, line_count * line_h)
-			print("  [SUCCESS] Match found! Rightmost X: %d | Final Pos: %s" % [rightmost_x, final_sampled_pos])
-			return final_sampled_pos
-		else:
-			print("  [FAIL] Target color invalid or pixel count abnormal (%d)!" % matched_pixel_count)
-
-	# 3. Fallback calculation if sampling fails
-	var line_start: int = text_buffer.plain_text.rfind("\n", target_char_idx)
-	line_start = 0 if line_start == -1 else line_start + 1
-	var line_text: String = text_buffer.plain_text.substr(line_start, idx - line_start)
-	var fallback_x: float = font.get_string_size(line_text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x if font else 0.0
-	var line_count: int = text_buffer.plain_text.substr(0, idx).count("\n")
-	var line_h: float = font.get_height(font_size) if font else font_size * 1.2
-
-	var fallback_pos = Vector2(fallback_x, line_count * line_h)
-	print("  [FALLBACK] Using font string size estimate: ", fallback_pos)
-	return fallback_pos
+	return _calculate_font_fallback_pos(idx, font, font_size)
 
 
-## Strict color comparison (0.001 tolerance) to prevent matching black/background pixels
+## Scans outward step-by-step from start_pos until the target color is matched
+func _find_target_color_radially(img: Image, start_pos: Vector2, target_color: Color) -> Vector2:
+	var width: int = img.get_width()
+	var height: int = img.get_height()
+	var start_x: int = clampi(int(start_pos.x), 0, width - 1)
+	var start_y: int = clampi(int(start_pos.y), 0, height - 1)
+
+	var max_radius: int = 150 # Maximum horizontal/vertical distance to search
+	
+	# Horizontal step scanning first (left/right alternating expand)
+	for r in range(0, max_radius):
+		for y_offset in range(-8, 9): # Vertical jitter allowance
+			var test_y: int = start_y + y_offset
+			if test_y < 0 or test_y >= height:
+				continue
+
+			# Check right (+r) and left (-r)
+			for dir in [1, -1]:
+				var test_x: int = start_x + (r * dir)
+				if test_x < 0 or test_x >= width:
+					continue
+
+				var px: Color = img.get_pixel(test_x, test_y)
+				if px.a > 0.1 and _colors_match(px, target_color):
+					# Find the right edge of this glyph segment
+					var rightmost_x: int = test_x
+					while rightmost_x + 1 < width:
+						var next_px: Color = img.get_pixel(rightmost_x + 1, test_y)
+						if next_px.a > 0.1 and _colors_match(next_px, target_color):
+							rightmost_x += 1
+						else:
+							break
+					
+					var line_h: float = _get_font_height()
+					return Vector2(rightmost_x + 1.0, _get_line_count(caret_index) * line_h)
+
+	return Vector2.INF
+
+
 func _colors_match(c1: Color, c2: Color, tol: float = 0.001) -> bool:
 	return abs(c1.r - c2.r) < tol and abs(c1.g - c2.g) < tol and abs(c1.b - c2.b) < tol
+
+
+func _calculate_font_fallback_pos(idx: int, font: Font, font_size: int) -> Vector2:
+	var target_char_idx: int = idx - 1
+	var line_start: int = _get_line_start(target_char_idx)
+	var line_text: String = text_buffer.plain_text.substr(line_start, idx - line_start)
+	var adv_x: float = font.get_string_size(line_text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x if font else 0.0
+	return Vector2(adv_x, _get_line_count(idx) * _get_font_height())
+
+
+func _get_line_start(char_idx: int) -> int:
+	var start: int = text_buffer.plain_text.rfind("\n", char_idx)
+	return 0 if start == -1 else start + 1
+
+
+func _get_line_count(idx: int) -> int:
+	return text_buffer.plain_text.substr(0, idx).count("\n")
+
+
+func _get_font_height() -> float:
+	var font = visible_label.get_theme_font("normal_font")
+	var font_size: int = visible_label.get_theme_font_size("normal_font_size")
+	if font_size <= 0:
+		font_size = 16
+	return font.get_height(font_size) if font else font_size * 1.2
 
 
 func _has_selection() -> bool:
@@ -304,5 +283,11 @@ func _on_caret_timer_timeout() -> void:
 
 
 func _on_text_changed() -> void:
-	self.caret_index = clampi(caret_index, 0, text_buffer.plain_text.length())
+	var max_len: int = text_buffer.plain_text.length() if text_buffer else 0
+	caret_index = clampi(caret_index, 0, max_len)
+	_deferred_update_caret_position.call_deferred()
+
+
+func _deferred_update_caret_position() -> void:
+	await RenderingServer.frame_post_draw
 	_update_caret_position()

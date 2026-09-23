@@ -7,10 +7,26 @@ extends SubViewport
 var text_buffer: TextBuffer
 
 
+func _ready() -> void:
+	# Ensure the viewport re-renders continuously so image sampling never gets stuck on stale frames
+	render_target_update_mode = SubViewport.UPDATE_ALWAYS
+
+
 ## Initializes the viewport with the text buffer and mirrors visible label settings
 func setup(buffer: TextBuffer) -> void:
+	if text_buffer and text_buffer.text_changed.is_connected(_on_text_changed):
+		text_buffer.text_changed.disconnect(_on_text_changed)
+
 	text_buffer = buffer
+
+	if text_buffer:
+		text_buffer.text_changed.connect(_on_text_changed)
+
 	sync_label_properties()
+	update_hidden_text(text_buffer)
+
+
+func _on_text_changed() -> void:
 	update_hidden_text(text_buffer)
 
 

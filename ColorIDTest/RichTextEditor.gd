@@ -10,7 +10,7 @@ var text_buffer: TextBuffer
 
 func _ready() -> void:
 	# Initialize data buffer
-	text_buffer = TextBuffer.new("[b]Hello[/b] World! Welcome to the [color=#ff0000]BBCode[/color] WYSIWYG editor.")
+	text_buffer = TextBuffer.new("[b]Hello[/b] World! Welcome to the [color=#ff0000]BBCode[/color] [font_size=24]WYSIWYG[/font_size] [font_size=14]editor[/font_size].")
 	
 	# Connect and setup sub-components
 	if hit_test_viewport:
