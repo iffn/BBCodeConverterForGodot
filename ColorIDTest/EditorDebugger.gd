@@ -2,7 +2,7 @@ class_name EditorDebugger
 extends Control
 
 @export var editor: RichTextEditor
-@export var editor_panel: Control # Reference to the main editor panel/container
+@export var editor_panel: Control
 @export var debug_texture_rect: TextureRect
 @export var info_label: Label
 
@@ -27,13 +27,11 @@ func _process(_delta: float) -> void:
 	var img_pixel_pos: Vector2i = Vector2i(-1, -1)
 	var img: Image = viewport_tex.get_image() if viewport_tex else null
 
-	# Fallback to editor node if editor_panel export isn't assigned
 	var ref_panel: Control = editor_panel if editor_panel else editor
 
 	if ref_panel:
 		local_mouse = ref_panel.get_local_mouse_position()
 
-		# Map the offset directly into image pixel space
 		if img and ref_panel.size.x > 0 and ref_panel.size.y > 0:
 			var scale_x: float = float(img.get_width()) / ref_panel.size.x
 			var scale_y: float = float(img.get_height()) / ref_panel.size.y
@@ -47,14 +45,14 @@ func _process(_delta: float) -> void:
 	var plain_idx: int = -1
 	var hovered_char: String = "N/A"
 
-	# Sample using image-space coordinates
+	# Sample using image-space coordinates via ColorIDMapper
 	if img and img_pixel_pos.x >= 0 and img_pixel_pos.y >= 0 and img_pixel_pos.x < img.get_width() and img_pixel_pos.y < img.get_height():
 		sampled_color = img.get_pixel(img_pixel_pos.x, img_pixel_pos.y)
 
 		if sampled_color.a >= 0.1:
 			decoded_id = ColorIDMapper.decode_color(sampled_color)
 			flat_id = ColorIDMapper.to_flat_id(decoded_id)
-			plain_idx = buffer.get_plain_index_from_flat_id(flat_id)
+			plain_idx = ColorIDMapper.get_index_from_color(buffer, sampled_color)
 
 			if plain_idx >= 0 and plain_idx < buffer.plain_text.length():
 				var raw_char: String = buffer.plain_text[plain_idx]
@@ -74,8 +72,9 @@ func _process(_delta: float) -> void:
 	var target_color_hex: String = "N/A"
 
 	if caret_idx > 0 and caret_idx - 1 < buffer.plain_text_ids.size():
-		target_flat_id = buffer.plain_text_ids[caret_idx - 1]
-		var target_color = viewport._flat_id_to_color(target_flat_id)
+		var target_idx: int = caret_idx - 1
+		target_flat_id = buffer.plain_text_ids[target_idx]
+		var target_color: Color = ColorIDMapper.get_color_from_index(buffer, target_idx)
 		target_color_hex = ColorIDMapper.to_bbcode_color(target_color)
 
 	# 4. Format stats text
@@ -107,13 +106,12 @@ func _draw() -> void:
 	if not debug_texture_rect:
 		return
 
-	# Position the crosshair over debug_texture_rect using the exact editor panel offset
 	if sampled_mouse_pos_relative.x >= 0 and sampled_mouse_pos_relative.y >= 0:
 		var debug_origin_local: Vector2 = get_global_transform().affine_inverse() * debug_texture_rect.global_position
 		var draw_pos: Vector2 = debug_origin_local + sampled_mouse_pos_relative
 
-		var gap: float = 2.0       # Distance from the center point to where each line starts
-		var line_length: float = 8.0 # Length of each crosshair arm
+		var gap: float = 2.0
+		var line_length: float = 8.0
 		var line_width: float = 2.0
 		var crosshair_color: Color = Color.RED
 
@@ -124,4 +122,4 @@ func _draw() -> void:
 		# Top line
 		draw_line(draw_pos - Vector2(0, gap + line_length), draw_pos - Vector2(0, gap), crosshair_color, line_width)
 		# Bottom line
-		draw_line(draw_pos + Vector2(0, gap), draw_pos + Vector2(0, gap + line_length), crosshair_color, line_width)
+		draw_line(draw_pos + Vector2(0, gap), draw_pos + Vector2(0, gap), crosshair_color, line_width)

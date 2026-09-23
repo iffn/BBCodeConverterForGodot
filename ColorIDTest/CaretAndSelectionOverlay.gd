@@ -172,8 +172,7 @@ func _get_caret_screen_position(idx: int) -> Vector2:
 
 	var img: Image = hit_test_viewport.get_texture().get_image()
 	if img and target_char_idx < text_buffer.plain_text_ids.size():
-		var target_flat_id: int = text_buffer.plain_text_ids[target_char_idx]
-		var target_color: Color = hit_test_viewport._flat_id_to_color(target_flat_id)
+		var target_color: Color = ColorIDMapper.get_color_from_index(text_buffer, target_char_idx)
 
 		# Search radially outward from the starting position
 		var found_pos: Vector2 = _find_target_color_radially(img, last_known_caret_pos, target_color)
@@ -192,14 +191,12 @@ func _find_target_color_radially(img: Image, start_pos: Vector2, target_color: C
 
 	var max_radius: int = 150 # Maximum horizontal/vertical distance to search
 	
-	# Horizontal step scanning first (left/right alternating expand)
 	for r in range(0, max_radius):
 		for y_offset in range(-8, 9): # Vertical jitter allowance
 			var test_y: int = start_y + y_offset
 			if test_y < 0 or test_y >= height:
 				continue
 
-			# Check right (+r) and left (-r)
 			for dir in [1, -1]:
 				var test_x: int = start_x + (r * dir)
 				if test_x < 0 or test_x >= width:

@@ -39,6 +39,10 @@ layout_mode = 0
 offset_right = 500.0
 offset_bottom = 300.0
 
+[node name="Label" type="Label" parent="HBoxContainer/EditorPanel/VBoxContainer"]
+layout_mode = 2
+text = "=== INPUT FIELD ==="
+
 [node name="Visible text" type="RichTextLabel" parent="HBoxContainer/EditorPanel/VBoxContainer"]
 custom_minimum_size = Vector2(500, 300)
 layout_mode = 2
@@ -46,6 +50,13 @@ mouse_filter = 2
 theme_override_fonts/normal_font = SubResource("FontVariation_moa04")
 theme_override_styles/normal = SubResource("StyleBoxFlat_i14kk")
 bbcode_enabled = true
+text = "[bgcolor=#ff0000]T[/bgcolor]est
+
+T[bgcolor=#0000ff]e[/bgcolor]st
+
+[bgcolor=#ff0000]T[/bgcolor][bgcolor=#0000ff]e[/bgcolor]st
+
+[bgcolor=#ff0000]T[/bgcolor][bgcolor=#0000ff]e[/bgcolor][bgcolor=#ff0000]s[/bgcolor]t"
 
 [node name="Overlay" type="Control" parent="HBoxContainer/EditorPanel/VBoxContainer/Visible text" node_paths=PackedStringArray("visible_label", "hit_test_viewport")]
 layout_mode = 1
