@@ -82,6 +82,7 @@ expand_mode = 1
 
 [node name="DebugInfoLabel" type="Label" parent="HBoxContainer/DebugPanel/VBoxContainer"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 10
 text = "Stats loading..."
 
 [node name="Debugger" type="Control" parent="." node_paths=PackedStringArray("editor", "debug_texture_rect", "info_label")]
