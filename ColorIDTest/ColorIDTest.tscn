@@ -8,7 +8,7 @@
 [sub_resource type="FontVariation" id="FontVariation_moa04"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_i14kk"]
-bg_color = Color(0.0646965, 0.0646965, 0.0646965, 1)
+bg_color = Color(0, 0, 0, 1)
 
 [node name="ColorIdTest" type="Control" node_paths=PackedStringArray("visible_label", "hit_test_viewport", "overlay")]
 layout_mode = 3
@@ -85,7 +85,7 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 10
 text = "Stats loading..."
 
-[node name="Debugger" type="Control" parent="." node_paths=PackedStringArray("editor", "debug_texture_rect", "info_label")]
+[node name="Debugger" type="Control" parent="." node_paths=PackedStringArray("editor", "editor_panel", "debug_texture_rect", "info_label")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -95,6 +95,7 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("3_dbg")
 editor = NodePath("..")
+editor_panel = NodePath("../HBoxContainer/EditorPanel")
 debug_texture_rect = NodePath("../HBoxContainer/DebugPanel/VBoxContainer/ViewportPreview")
 info_label = NodePath("../HBoxContainer/DebugPanel/VBoxContainer/DebugInfoLabel")
 
