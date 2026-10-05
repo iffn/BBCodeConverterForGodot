@@ -74,6 +74,11 @@ func _process(_delta: float) -> void:
 		var target_color: Color = ColorIDMapper.get_color_from_index(buffer, target_idx)
 		target_color_hex = ColorIDMapper.to_bbcode_color(target_color)
 
+	# Safely resolve next char when text is empty or caret is at the end
+	var next_char: String = "N/A"
+	if caret_idx >= 0 and caret_idx < buffer.plain_text.length():
+		next_char = buffer.plain_text[caret_idx]
+
 	# 4. Format stats text
 	var debug_info: String = ""
 	debug_info += "=== MOUSE SAMPLING ===\n"
@@ -88,7 +93,7 @@ func _process(_delta: float) -> void:
 	debug_info += "Caret Plain Index: %d\n" % caret_idx
 	debug_info += "Target Char Flat ID: %d\n" % target_flat_id
 	debug_info += "Target Color (Hex): %s\n" % target_color_hex
-	debug_info += "Next char : %s\n" % buffer.plain_text[clamp(caret_idx, 0, buffer.plain_text.length() - 1)]
+	debug_info += "Next char : %s\n" % next_char
 	debug_info += "\n"
 
 	debug_info += "=== TEXT BUFFER ===\n"
