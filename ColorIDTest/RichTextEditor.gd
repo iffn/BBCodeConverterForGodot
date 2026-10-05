@@ -49,6 +49,14 @@ func _unhandled_key_input(event: InputEvent) -> void:
 				apply_tag_to_selection("u")
 				get_viewport().set_input_as_handled()
 				return
+			KEY_S:
+				apply_tag_to_selection("s")
+				get_viewport().set_input_as_handled()
+				return
+			KEY_L:
+				add_list_layer()
+				get_viewport().set_input_as_handled()
+				return
 
 	# 2. Backspace & Delete
 	if key_event.keycode == KEY_BACKSPACE:
@@ -114,18 +122,66 @@ func apply_tag_to_selection(tag_name: String) -> void:
 		return
 
 	var sel: Vector2i = overlay.get_selection_range()
-	if sel.x == sel.y:
+	var new_sel: Vector2i = text_buffer.toggle_tag_on_range(sel.x, sel.y, tag_name)
+
+	_apply_new_selection(new_sel)
+
+
+func add_list_layer() -> void:
+	if not overlay or not text_buffer:
 		return
 
-	text_buffer.toggle_tag_on_range(sel.x, sel.y, tag_name)
-	overlay.selection_anchor = sel.x
-	overlay.set_caret_index(sel.y)
+	var sel: Vector2i = overlay.get_selection_range()
+	var new_sel: Vector2i = text_buffer.add_list_layer(sel.x, sel.y)
+
+	_apply_new_selection(new_sel)
+
+
+func toggle_bold() -> void:
+	apply_tag_to_selection("b")
+
+
+func toggle_italic() -> void:
+	apply_tag_to_selection("i")
+
+
+func toggle_underlined() -> void:
+	apply_tag_to_selection("u")
+
+
+func toggle_strikethrough() -> void:
+	apply_tag_to_selection("s")
+
+
+func toggle_center() -> void:
+	apply_tag_to_selection("center")
+
+
+func toggle_left() -> void:
+	apply_tag_to_selection("left")
+
+
+func toggle_right() -> void:
+	apply_tag_to_selection("right")
+
+
+func toggle_fill() -> void:
+	apply_tag_to_selection("fill")
 
 
 func get_active_formatting() -> Array[String]:
 	if not overlay or not text_buffer:
 		return []
 	return text_buffer.get_active_tags_at_index(overlay.caret_index)
+
+
+func _apply_new_selection(new_sel: Vector2i) -> void:
+	if new_sel.x == new_sel.y:
+		overlay.clear_selection()
+		overlay.set_caret_index(new_sel.x)
+	else:
+		overlay.selection_anchor = new_sel.x
+		overlay.set_caret_index(new_sel.y)
 
 
 func _on_buffer_text_changed() -> void:

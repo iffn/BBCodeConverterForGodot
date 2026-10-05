@@ -4,7 +4,21 @@
 [ext_resource type="Script" uid="uid://8e1t6we13i14" path="res://BBCodeConverterForDotNetGodot/ColorIDTest/CaretAndSelectionOverlay.gd" id="1_xkx6d"]
 [ext_resource type="Script" uid="uid://ddk5l3oh2ee72" path="res://BBCodeConverterForDotNetGodot/ColorIDTest/RichTextEditor.gd" id="2_4qbpd"]
 [ext_resource type="Shader" uid="uid://csf7488uiyekl" path="res://BBCodeConverterForDotNetGodot/ColorIDTest/SelectionOverlay.gdshader" id="2_caphx"]
+[ext_resource type="PackedScene" uid="uid://dpo40pxe3abgh" path="res://BBCodeConverterForDotNetGodot/Prefabs/TextEditButton.tscn" id="2_qkvdn"]
+[ext_resource type="Texture2D" uid="uid://cx5ntgnkpyy2y" path="res://BBCodeConverterForDotNetGodot/ExternalAssets/CC BY 40/fontawesome free font/bold-solid-full.svg" id="3_4xweg"]
 [ext_resource type="Script" uid="uid://din71nhh7gj57" path="res://BBCodeConverterForDotNetGodot/ColorIDTest/EditorDebugger.gd" id="3_dbg"]
+[ext_resource type="Texture2D" uid="uid://bsegkimby85he" path="res://BBCodeConverterForDotNetGodot/ExternalAssets/CC BY 40/fontawesome free font/italic-solid-full.svg" id="4_ywt7b"]
+[ext_resource type="Texture2D" uid="uid://7rj701uod0bc" path="res://BBCodeConverterForDotNetGodot/ExternalAssets/CC BY 40/fontawesome free font/strikethrough-solid-full.svg" id="5_bsfep"]
+[ext_resource type="Texture2D" uid="uid://bayv0oin8tdup" path="res://BBCodeConverterForDotNetGodot/ExternalAssets/CC BY 40/fontawesome free font/ellipsis-vertical-solid-full.svg" id="6_pcwyy"]
+[ext_resource type="Texture2D" uid="uid://dfspaxedkpcq3" path="res://BBCodeConverterForDotNetGodot/ExternalAssets/CC BY 40/fontawesome free font/list-ul-solid-full.svg" id="7_uxcls"]
+[ext_resource type="Texture2D" uid="uid://dw7c5clm410cw" path="res://BBCodeConverterForDotNetGodot/ExternalAssets/CC BY 40/fontawesome free font/align-left-solid-full.svg" id="8_n52jn"]
+[ext_resource type="Texture2D" uid="uid://cxaradkxxwo13" path="res://BBCodeConverterForDotNetGodot/ExternalAssets/CC BY 40/fontawesome free font/align-center-solid-full.svg" id="9_1fdkj"]
+[ext_resource type="Texture2D" uid="uid://cta2omrdrp6kb" path="res://BBCodeConverterForDotNetGodot/ExternalAssets/CC BY 40/fontawesome free font/align-justify-solid-full.svg" id="10_js62u"]
+[ext_resource type="Texture2D" uid="uid://q32bdcguh1so" path="res://BBCodeConverterForDotNetGodot/ExternalAssets/CC BY 40/fontawesome free font/paragraph-solid-full.svg" id="11_vdsbw"]
+[ext_resource type="Texture2D" uid="uid://cmeoc7g2xvtwl" path="res://BBCodeConverterForDotNetGodot/ExternalAssets/CC BY 40/fontawesome free font/link-solid-full.svg" id="12_80ttl"]
+[ext_resource type="Texture2D" uid="uid://3gt75wqqnl6u" path="res://BBCodeConverterForDotNetGodot/ExternalAssets/CC BY 40/fontawesome free font/image-solid-full.svg" id="13_yuub4"]
+[ext_resource type="Texture2D" uid="uid://db5c7yru4enqt" path="res://BBCodeConverterForDotNetGodot/ExternalAssets/CC BY 40/fontawesome free font/rotate-left-solid.svg" id="14_al30l"]
+[ext_resource type="Texture2D" uid="uid://1udyu15ne14i" path="res://BBCodeConverterForDotNetGodot/ExternalAssets/CC BY 40/fontawesome free font/rotate-right-solid.svg" id="15_implj"]
 
 [sub_resource type="FontVariation" id="FontVariation_moa04"]
 
@@ -61,6 +75,69 @@ offset_bottom = 300.0
 layout_mode = 2
 text = "=== INPUT FIELD ==="
 
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/EditorPanel/VBoxContainer" unique_id=833189444]
+layout_mode = 2
+
+[node name="Bold" parent="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer" unique_id=1675335921 instance=ExtResource("2_qkvdn")]
+layout_mode = 2
+icon = ExtResource("3_4xweg")
+
+[node name="Italic" parent="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer" unique_id=427688653 instance=ExtResource("2_qkvdn")]
+layout_mode = 2
+icon = ExtResource("4_ywt7b")
+
+[node name="Strikethrough" parent="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer" unique_id=157089643 instance=ExtResource("2_qkvdn")]
+layout_mode = 2
+icon = ExtResource("5_bsfep")
+
+[node name="More fonts" parent="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer" unique_id=1794951604 instance=ExtResource("2_qkvdn")]
+layout_mode = 2
+icon = ExtResource("6_pcwyy")
+
+[node name="Bullet list" parent="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer" unique_id=1319335947 instance=ExtResource("2_qkvdn")]
+layout_mode = 2
+icon = ExtResource("7_uxcls")
+
+[node name="Alignment left" parent="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer" unique_id=799326204 instance=ExtResource("2_qkvdn")]
+layout_mode = 2
+icon = ExtResource("8_n52jn")
+
+[node name="Alignment center" parent="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer" unique_id=286773153 instance=ExtResource("2_qkvdn")]
+layout_mode = 2
+icon = ExtResource("9_1fdkj")
+
+[node name="Alignment block" parent="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer" unique_id=34433151 instance=ExtResource("2_qkvdn")]
+layout_mode = 2
+icon = ExtResource("10_js62u")
+
+[node name="Paragraph" parent="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer" unique_id=1745454421 instance=ExtResource("2_qkvdn")]
+layout_mode = 2
+icon = ExtResource("11_vdsbw")
+
+[node name="Link" parent="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer" unique_id=2128148859 instance=ExtResource("2_qkvdn")]
+layout_mode = 2
+icon = ExtResource("12_80ttl")
+
+[node name="Image" parent="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer" unique_id=753966783 instance=ExtResource("2_qkvdn")]
+layout_mode = 2
+icon = ExtResource("13_yuub4")
+
+[node name="More links" parent="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer" unique_id=841921098 instance=ExtResource("2_qkvdn")]
+layout_mode = 2
+icon = ExtResource("6_pcwyy")
+
+[node name="Undo" parent="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer" unique_id=1065671755 instance=ExtResource("2_qkvdn")]
+layout_mode = 2
+icon = ExtResource("14_al30l")
+
+[node name="Redo" parent="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer" unique_id=1904523788 instance=ExtResource("2_qkvdn")]
+layout_mode = 2
+icon = ExtResource("15_implj")
+
+[node name="History" parent="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer" unique_id=1336660461 instance=ExtResource("2_qkvdn")]
+layout_mode = 2
+icon = ExtResource("6_pcwyy")
+
 [node name="Visible text" type="RichTextLabel" parent="HBoxContainer/EditorPanel/VBoxContainer" unique_id=250519507]
 custom_minimum_size = Vector2(500, 300)
 layout_mode = 2
@@ -84,6 +161,13 @@ script = ExtResource("1_xkx6d")
 visible_label = NodePath("..")
 mask_label = NodePath("../../../../../Selection overlay/VBoxContainer/Hidden caret text")
 hit_test_viewport = NodePath("../../../../../Text selection")
+
+[node name="Label2" type="Label" parent="HBoxContainer/EditorPanel/VBoxContainer" unique_id=1289708566]
+layout_mode = 2
+text = "=== Raw ==="
+
+[node name="LineEdit" type="LineEdit" parent="HBoxContainer/EditorPanel/VBoxContainer" unique_id=502346603]
+layout_mode = 2
 
 [node name="DebugPanel" type="Panel" parent="HBoxContainer" unique_id=1626999407]
 custom_minimum_size = Vector2(500, 0)
@@ -112,7 +196,7 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 10
 text = "Stats loading..."
 
-[node name="Debugger with overlay" type="Control" parent="." unique_id=470665635 node_paths=PackedStringArray("editor", "editor_panel", "debug_panel", "debug_texture_rect", "info_label")]
+[node name="Debugger with overlay" type="Control" parent="." unique_id=470665635 node_paths=PackedStringArray("editor", "editor_panel", "debug_panel", "debug_texture_rect", "info_label", "raw_output")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -126,6 +210,7 @@ editor_panel = NodePath("../HBoxContainer/EditorPanel")
 debug_panel = NodePath("../HBoxContainer/DebugPanel")
 debug_texture_rect = NodePath("../HBoxContainer/DebugPanel/VBoxContainer/ViewportPreview")
 info_label = NodePath("../HBoxContainer/DebugPanel/VBoxContainer/DebugInfoLabel")
+raw_output = NodePath("../HBoxContainer/EditorPanel/VBoxContainer/LineEdit")
 
 [node name="Text selection" type="SubViewport" parent="." unique_id=1667487321 node_paths=PackedStringArray("visible_label", "hidden_label")]
 size = Vector2i(500, 300)
@@ -158,3 +243,10 @@ theme_override_fonts/normal_font = SubResource("FontVariation_moa04")
 theme_override_styles/normal = SubResource("StyleBoxFlat_i14kk")
 bbcode_enabled = true
 text = "[color=#000000][bgcolor=#000000]First part (Black Text)[/bgcolor][/color] [color=#0000FF][bgcolor=#0000FF]Second part (Blue Text)[/bgcolor][/color][color=#FFFFFF][bgcolor=#000000]|[/bgcolor][/color]"
+
+[connection signal="button_down" from="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer/Bold" to="." method="toggle_bold"]
+[connection signal="button_down" from="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer/Italic" to="." method="toggle_italic"]
+[connection signal="button_down" from="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer/Bullet list" to="." method="toggle_strikethrough"]
+[connection signal="button_down" from="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer/Alignment left" to="." method="toggle_left"]
+[connection signal="button_down" from="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer/Alignment center" to="." method="toggle_center"]
+[connection signal="button_down" from="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer/Alignment block" to="." method="toggle_fill"]

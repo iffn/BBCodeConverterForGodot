@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://clnbfmm8cevjv"]
+[gd_scene format=3 uid="uid://clnbfmm8cevjv"]
 
 [ext_resource type="Texture2D" uid="uid://cx5ntgnkpyy2y" path="res://BBCodeConverterForDotNetGodot/ExternalAssets/CC BY 40/fontawesome free font/bold-solid-full.svg" id="1_5qf8f"]
 [ext_resource type="Script" uid="uid://i0jt2mh8foos" path="res://BBCodeConverterForDotNetGodot/BBCodeConverter.cs" id="1_p0lkg"]

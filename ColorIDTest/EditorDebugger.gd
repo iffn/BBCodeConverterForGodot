@@ -6,7 +6,7 @@ extends Control
 @export var debug_panel: Control
 @export var debug_texture_rect: TextureRect
 @export var info_label: Label
-
+@export var raw_output: LineEdit
 
 func _process(_delta: float) -> void:
 	if not editor or not editor.hit_test_viewport or not editor.text_buffer:
@@ -104,6 +104,8 @@ func _process(_delta: float) -> void:
 		info_label.text = debug_info
 
 	queue_redraw()
+	
+	raw_output.text = buffer.raw_text
 
 
 func _draw() -> void:

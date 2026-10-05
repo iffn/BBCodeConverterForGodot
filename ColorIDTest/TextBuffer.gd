@@ -30,7 +30,7 @@ func set_raw_text(new_raw: String) -> void:
 	rebuild_id_mappings()
 
 
-## Re-indexes the text buffer using 256-character sector chunks
+## Re-indexes the text buffer using sector chunks
 func rebuild_id_mappings() -> void:
 	plain_text = ""
 	plain_text_ids.clear()
@@ -126,26 +126,50 @@ func delete_plain_range(start_plain: int, end_plain: int) -> void:
 	rebuild_id_mappings()
 
 
-## Applies or removes a BBCode tag over a given plain-text index range
-func toggle_tag_on_range(start_plain: int, end_plain: int, tag: String) -> void:
-	if start_plain < 0 or end_plain > plain_text.length() or start_plain >= end_plain:
-		return
-
+## Applies or removes a BBCode tag over a given plain-text index range.
+## Returns a Vector2i containing the updated plain-text selection bounds (start, end).
+func toggle_tag_on_range(start_plain: int, end_plain: int, tag: String) -> Vector2i:
 	var start_raw: int = plain_to_raw_index(start_plain)
 	var end_raw: int = plain_to_raw_index(end_plain)
+	var has_selection: bool = start_plain != end_plain
+	var selected_raw: String = raw_text.substr(start_raw, end_raw - start_raw)
 
-	var tag_name: String = tag.split("=")[0]
-	var open_tag: String = "[" + tag + "]"
-	var close_tag: String = "[/" + tag_name + "]"
+	var result: Dictionary = BBCodeUtility.toggle_tag(
+		raw_text,
+		has_selection,
+		start_raw,
+		selected_raw,
+		tag
+	)
 
-	# Check if the range is already fully wrapped in this tag
-	if _is_raw_range_wrapped(start_raw, end_raw, tag_name):
-		_strip_tag_around_raw_range(start_raw, end_raw, tag_name)
-	else:
-		raw_text = raw_text.insert(end_raw, close_tag)
-		raw_text = raw_text.insert(start_raw, open_tag)
-
+	raw_text = result["new_text"]
 	rebuild_id_mappings()
+
+	var new_start_plain: int = raw_to_plain_index(result["selection_start"])
+	var new_end_plain: int = raw_to_plain_index(result["selection_end"])
+	return Vector2i(new_start_plain, new_end_plain)
+
+
+## Wraps or unwraps selected lines in [ul] tags.
+## Returns a Vector2i containing the updated plain-text selection bounds (start, end).
+func add_list_layer(start_plain: int, end_plain: int) -> Vector2i:
+	var start_raw: int = plain_to_raw_index(start_plain)
+	var end_raw: int = plain_to_raw_index(end_plain)
+	var has_selection: bool = start_plain != end_plain
+
+	var result: Dictionary = BBCodeUtility.add_list_layer(
+		raw_text,
+		has_selection,
+		start_raw,
+		end_raw
+	)
+
+	raw_text = result["new_text"]
+	rebuild_id_mappings()
+
+	var new_start_plain: int = raw_to_plain_index(result["selection_start"])
+	var new_end_plain: int = raw_to_plain_index(result["selection_end"])
+	return Vector2i(new_start_plain, new_end_plain)
 
 
 ## Returns a list of active BBCode tag names enclosing the specified plain-text index
@@ -183,40 +207,3 @@ func get_plain_index_from_flat_id(flat_id: int) -> int:
 	if flat_id_to_plain_index.has(flat_id):
 		return flat_id_to_plain_index[flat_id]
 	return -1
-
-
-func _is_raw_range_wrapped(start_raw: int, _end_raw: int, tag_name: String) -> bool:
-	var prefix: String = raw_text.substr(0, start_raw)
-	var open_pattern: String = "[" + tag_name
-	var close_pattern: String = "[/" + tag_name + "]"
-
-	var open_idx: int = prefix.rfind(open_pattern)
-	if open_idx == -1:
-		return false
-
-	var close_idx_after_open: int = prefix.find(close_pattern, open_idx)
-	return close_idx_after_open == -1 or close_idx_after_open >= start_raw
-
-
-func _strip_tag_around_raw_range(start_raw: int, end_raw: int, tag_name: String) -> void:
-	var prefix: String = raw_text.substr(0, start_raw)
-	var open_pattern: String = "[" + tag_name
-	var close_pattern: String = "[/" + tag_name + "]"
-
-	var open_start: int = prefix.rfind(open_pattern)
-	if open_start == -1:
-		return
-
-	var open_end: int = raw_text.find("]", open_start)
-	if open_end == -1:
-		return
-
-	var close_start: int = raw_text.find(close_pattern, end_raw)
-	if close_start == -1:
-		return
-
-	var close_end: int = close_start + close_pattern.length()
-
-	# Remove closing tag first to keep open tag indices intact
-	raw_text = raw_text.erase(close_start, close_end - close_start)
-	raw_text = raw_text.erase(open_start, (open_end + 1) - open_start)
