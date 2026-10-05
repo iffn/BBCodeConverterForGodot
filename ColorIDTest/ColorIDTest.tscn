@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://b2vumh6ea7c2x"]
+[gd_scene format=3 uid="uid://b2vumh6ea7c2x"]
 
 [ext_resource type="Script" uid="uid://dnt5ouwqftmwa" path="res://BBCodeConverterForDotNetGodot/ColorIDTest/HitTestViewport.gd" id="1_i14kk"]
 [ext_resource type="Script" uid="uid://8e1t6we13i14" path="res://BBCodeConverterForDotNetGodot/ColorIDTest/CaretAndSelectionOverlay.gd" id="1_xkx6d"]
@@ -10,7 +10,7 @@
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_i14kk"]
 bg_color = Color(0, 0, 0, 1)
 
-[node name="ColorIdTest" type="Control" node_paths=PackedStringArray("visible_label", "hit_test_viewport", "overlay")]
+[node name="ColorIdTest" type="Control" unique_id=458935336 node_paths=PackedStringArray("visible_label", "hit_test_viewport", "overlay")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -22,7 +22,7 @@ visible_label = NodePath("HBoxContainer/EditorPanel/VBoxContainer/Visible text")
 hit_test_viewport = NodePath("SubViewport")
 overlay = NodePath("HBoxContainer/EditorPanel/VBoxContainer/Visible text/Overlay")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=126476793]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -30,20 +30,20 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="EditorPanel" type="Panel" parent="HBoxContainer"]
+[node name="EditorPanel" type="Panel" parent="HBoxContainer" unique_id=241443436]
 custom_minimum_size = Vector2(520, 0)
 layout_mode = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/EditorPanel"]
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/EditorPanel" unique_id=1809549810]
 layout_mode = 0
 offset_right = 500.0
 offset_bottom = 300.0
 
-[node name="Label" type="Label" parent="HBoxContainer/EditorPanel/VBoxContainer"]
+[node name="Label" type="Label" parent="HBoxContainer/EditorPanel/VBoxContainer" unique_id=177036438]
 layout_mode = 2
 text = "=== INPUT FIELD ==="
 
-[node name="Visible text" type="RichTextLabel" parent="HBoxContainer/EditorPanel/VBoxContainer"]
+[node name="Visible text" type="RichTextLabel" parent="HBoxContainer/EditorPanel/VBoxContainer" unique_id=250519507]
 custom_minimum_size = Vector2(500, 300)
 layout_mode = 2
 mouse_filter = 2
@@ -58,7 +58,7 @@ T[bgcolor=#0000ff]e[/bgcolor]st
 
 [bgcolor=#ff0000]T[/bgcolor][bgcolor=#0000ff]e[/bgcolor][bgcolor=#ff0000]s[/bgcolor]t"
 
-[node name="Overlay" type="Control" parent="HBoxContainer/EditorPanel/VBoxContainer/Visible text" node_paths=PackedStringArray("visible_label", "hit_test_viewport")]
+[node name="Overlay" type="Control" parent="HBoxContainer/EditorPanel/VBoxContainer/Visible text" unique_id=1507390407 node_paths=PackedStringArray("visible_label", "hit_test_viewport")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -70,11 +70,11 @@ script = ExtResource("1_xkx6d")
 visible_label = NodePath("..")
 hit_test_viewport = NodePath("../../../../../SubViewport")
 
-[node name="DebugPanel" type="Panel" parent="HBoxContainer"]
+[node name="DebugPanel" type="Panel" parent="HBoxContainer" unique_id=1626999407]
 custom_minimum_size = Vector2(500, 0)
 layout_mode = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/DebugPanel"]
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer/DebugPanel" unique_id=656442676]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -82,21 +82,21 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Label" type="Label" parent="HBoxContainer/DebugPanel/VBoxContainer"]
+[node name="Label" type="Label" parent="HBoxContainer/DebugPanel/VBoxContainer" unique_id=1676939585]
 layout_mode = 2
 text = "=== VIEWPORT TEXTURE PREVIEW ==="
 
-[node name="ViewportPreview" type="TextureRect" parent="HBoxContainer/DebugPanel/VBoxContainer"]
+[node name="ViewportPreview" type="TextureRect" parent="HBoxContainer/DebugPanel/VBoxContainer" unique_id=898783253]
 custom_minimum_size = Vector2(500, 300)
 layout_mode = 2
 expand_mode = 1
 
-[node name="DebugInfoLabel" type="Label" parent="HBoxContainer/DebugPanel/VBoxContainer"]
+[node name="DebugInfoLabel" type="Label" parent="HBoxContainer/DebugPanel/VBoxContainer" unique_id=258462215]
 layout_mode = 2
 theme_override_font_sizes/font_size = 10
 text = "Stats loading..."
 
-[node name="Debugger" type="Control" parent="." node_paths=PackedStringArray("editor", "editor_panel", "debug_panel", "debug_texture_rect", "info_label")]
+[node name="Debugger" type="Control" parent="." unique_id=470665635 node_paths=PackedStringArray("editor", "editor_panel", "debug_panel", "debug_texture_rect", "info_label")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -111,17 +111,17 @@ debug_panel = NodePath("../HBoxContainer/DebugPanel")
 debug_texture_rect = NodePath("../HBoxContainer/DebugPanel/VBoxContainer/ViewportPreview")
 info_label = NodePath("../HBoxContainer/DebugPanel/VBoxContainer/DebugInfoLabel")
 
-[node name="SubViewport" type="SubViewport" parent="." node_paths=PackedStringArray("visible_label", "hidden_label")]
+[node name="SubViewport" type="SubViewport" parent="." unique_id=1667487321 node_paths=PackedStringArray("visible_label", "hidden_label")]
 size = Vector2i(500, 300)
 script = ExtResource("1_i14kk")
 visible_label = NodePath("../HBoxContainer/EditorPanel/VBoxContainer/Visible text")
 hidden_label = NodePath("VBoxContainer/Hidden text")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="SubViewport"]
+[node name="VBoxContainer" type="VBoxContainer" parent="SubViewport" unique_id=1551405072]
 offset_right = 500.0
 offset_bottom = 300.0
 
-[node name="Hidden text" type="RichTextLabel" parent="SubViewport/VBoxContainer"]
+[node name="Hidden text" type="RichTextLabel" parent="SubViewport/VBoxContainer" unique_id=817096866]
 custom_minimum_size = Vector2(500, 300)
 layout_mode = 2
 theme_override_fonts/normal_font = SubResource("FontVariation_moa04")
