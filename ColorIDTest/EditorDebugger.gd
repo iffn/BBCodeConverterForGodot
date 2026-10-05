@@ -87,7 +87,9 @@ func _process(_delta: float) -> void:
 	debug_info += "=== CARET STATE ===\n"
 	debug_info += "Caret Plain Index: %d\n" % caret_idx
 	debug_info += "Target Char Flat ID: %d\n" % target_flat_id
-	debug_info += "Target Color (Hex): %s\n\n" % target_color_hex
+	debug_info += "Target Color (Hex): %s\n" % target_color_hex
+	debug_info += "Next char : %s\n" % buffer.plain_text[clamp(caret_idx, 0, buffer.plain_text.length() - 1)]
+	debug_info += "\n"
 
 	debug_info += "=== TEXT BUFFER ===\n"
 	debug_info += "Plain Text Length: %d\n" % buffer.plain_text.length()
