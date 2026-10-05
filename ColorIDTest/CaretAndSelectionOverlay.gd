@@ -18,8 +18,20 @@ var caret_index: int = 0:
 			_update_caret_position()
 			caret_moved.emit(caret_index)
 
-var selection_start: int = -1
-var selection_end: int = -1
+var selection_start: int = -1:
+	set(value):
+		if selection_start != value:
+			selection_start = value
+			selection_changed.emit(selection_start, selection_end)
+			queue_redraw()
+
+var selection_end: int = -1:
+	set(value):
+		if selection_end != value:
+			selection_end = value
+			selection_changed.emit(selection_start, selection_end)
+			queue_redraw()
+
 var is_dragging: bool = false
 var caret_visible: bool = true
 var caret_timer: Timer
@@ -31,6 +43,7 @@ var preferred_x: float = -1.0
 
 const CARET_WIDTH: float = 2.0
 const CARET_COLOR: Color = Color(1.0, 1.0, 1.0, 0.9)
+const SELECTION_COLOR: Color = Color(0.2, 0.5, 0.9, 0.4)
 
 
 func _ready() -> void:
@@ -212,9 +225,97 @@ func _draw() -> void:
 	if not has_focus() or not text_buffer or not visible_label:
 		return
 
+	if _has_selection():
+		_draw_selection_rects()
+
 	if caret_visible and caret_index >= 0:
 		var draw_h: float = cached_caret_height if cached_caret_height > 0.0 else _get_font_height()
 		draw_line(cached_caret_pos, cached_caret_pos + Vector2(0, draw_h), CARET_COLOR, CARET_WIDTH)
+
+
+func _draw_selection_rects() -> void:
+	var tex: Texture2D = hit_test_viewport.get_texture()
+	if not tex:
+		return
+
+	var img: Image = tex.get_image()
+	if not img:
+		return
+
+	var start_idx: int = min(selection_start, selection_end)
+	var end_idx: int = max(selection_start, selection_end)
+
+	var line_rects: Array[Rect2] = []
+	var current_rect: Rect2 = Rect2()
+	var has_active_rect: bool = false
+
+	for i in range(start_idx, end_idx):
+		if i >= text_buffer.plain_text_ids.size():
+			break
+
+		var char_rect: Rect2 = _get_character_bounds(img, i)
+		if char_rect.size == Vector2.ZERO:
+			continue
+
+		if not has_active_rect:
+			current_rect = char_rect
+			has_active_rect = true
+		else:
+			if abs(char_rect.position.y - current_rect.position.y) < 4.0:
+				var combined_right: float = max(current_rect.end.x, char_rect.end.x)
+				var combined_top: float = min(current_rect.position.y, char_rect.position.y)
+				var combined_bottom: float = max(current_rect.end.y, char_rect.end.y)
+
+				current_rect.position.y = combined_top
+				current_rect.size.x = combined_right - current_rect.position.x
+				current_rect.size.y = combined_bottom - combined_top
+			else:
+				line_rects.append(current_rect)
+				current_rect = char_rect
+
+	if has_active_rect:
+		line_rects.append(current_rect)
+
+	for rect in line_rects:
+		draw_rect(rect, SELECTION_COLOR, true)
+
+
+func _get_character_bounds(img: Image, char_idx: int) -> Rect2:
+	var target_color: Color = ColorIDMapper.get_color_from_index(text_buffer, char_idx)
+	var font = visible_label.get_theme_font("normal_font")
+	var font_size: int = visible_label.get_theme_font_size("normal_font_size")
+	if font_size <= 0:
+		font_size = 16
+
+	var estimated_pos: Vector2 = _calculate_font_fallback_pos(char_idx + 1, font, font_size)
+	var width: int = img.get_width()
+	var height: int = img.get_height()
+
+	var start_x: int = clampi(int(estimated_pos.x), 0, width - 1)
+	var start_y: int = clampi(int(estimated_pos.y), 0, height - 1)
+
+	var min_x: int = width
+	var max_x: int = -1
+	var min_y: int = height
+	var max_y: int = -1
+
+	var found: bool = false
+	var search_radius: int = 40
+
+	for y in range(max(0, start_y - search_radius), min(height, start_y + search_radius)):
+		for x in range(max(0, start_x - search_radius), min(width, start_x + search_radius)):
+			var px: Color = img.get_pixel(x, y)
+			if px.a > 0.1 and _colors_match(px, target_color):
+				found = true
+				min_x = min(min_x, x)
+				max_x = max(max_x, x)
+				min_y = min(min_y, y)
+				max_y = max(max_y, y)
+
+	if not found:
+		return Rect2()
+
+	return Rect2(Vector2(min_x, min_y), Vector2(max_x - min_x + 1, max_y - min_y + 1))
 
 
 func _update_caret_position() -> void:
@@ -263,7 +364,6 @@ func _get_caret_screen_position(idx: int) -> Vector2:
 	return _calculate_font_fallback_pos(idx, font, font_size)
 
 
-## Scans outward step-by-step from start_pos until target_color is matched on both axes
 func _find_target_color_radially(img: Image, start_pos: Vector2, target_color: Color) -> Vector2:
 	var width: int = img.get_width()
 	var height: int = img.get_height()
@@ -271,7 +371,7 @@ func _find_target_color_radially(img: Image, start_pos: Vector2, target_color: C
 	var start_y: int = clampi(int(start_pos.y), 0, height - 1)
 
 	var max_radius: int = 200
-	var gap_tolerance: int = 2 # Allows jumping up to 2 empty/mismatched pixels in vertical scans
+	var gap_tolerance: int = 2
 
 	for r in range(0, max_radius):
 		for y_offset in range(-40, 41):
@@ -286,7 +386,6 @@ func _find_target_color_radially(img: Image, start_pos: Vector2, target_color: C
 
 				var px: Color = img.get_pixel(test_x, test_y)
 				if px.a > 0.1 and _colors_match(px, target_color):
-					# 1. Find rightmost boundary of character
 					var rightmost_x: int = test_x
 					while rightmost_x + 1 < width:
 						var next_px: Color = img.get_pixel(rightmost_x + 1, test_y)
@@ -295,11 +394,10 @@ func _find_target_color_radially(img: Image, start_pos: Vector2, target_color: C
 						else:
 							break
 
-					# 2. Expand upwards with gap tolerance
 					var line_top_y: int = test_y
 					var curr_y: int = test_y
 					var gaps: int = 0
-					
+
 					while curr_y - 1 >= 0:
 						var up_px: Color = img.get_pixel(test_x, curr_y - 1)
 						if up_px.a > 0.1 and _colors_match(up_px, target_color):
@@ -311,7 +409,6 @@ func _find_target_color_radially(img: Image, start_pos: Vector2, target_color: C
 								break
 						curr_y -= 1
 
-					# 3. Expand downwards with gap tolerance
 					var line_bottom_y: int = test_y
 					curr_y = test_y
 					gaps = 0
@@ -334,6 +431,7 @@ func _find_target_color_radially(img: Image, start_pos: Vector2, target_color: C
 					return Vector2(rightmost_x + 1.0, float(line_top_y))
 
 	return Vector2.INF
+
 
 func _colors_match(c1: Color, c2: Color, tol: float = 0.001) -> bool:
 	return abs(c1.r - c2.r) < tol and abs(c1.g - c2.g) < tol and abs(c1.b - c2.b) < tol
