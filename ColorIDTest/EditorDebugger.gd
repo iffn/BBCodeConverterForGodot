@@ -105,7 +105,8 @@ func _process(_delta: float) -> void:
 
 	queue_redraw()
 	
-	raw_output.text = buffer.raw_text
+	if raw_output and raw_output.text != buffer.raw_text:
+		raw_output.text = buffer.raw_text
 
 
 func _draw() -> void:
