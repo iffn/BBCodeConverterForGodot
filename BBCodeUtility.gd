@@ -4,49 +4,62 @@ extends RefCounted
 ## Utility class providing stateless BBCode string manipulation and tag logic.
 
 
+
 ## Toggles a tag on a raw text string given a selection range.
 ## Returns a Dictionary with keys: "new_text", "selection_start", "selection_end".
 static func toggle_tag(
 	full_text: String,
 	has_selection: bool,
 	sel_start: int,
-	selected_text: String,
+	selected_length: int,
 	encase: String
 ) -> Dictionary:
 	var open_tag: String = "[" + encase + "]"
 	var close_tag: String = "[/" + encase + "]"
 
+	# If the raw selection length accidentally swallowed a trailing closing tag, trim it
+	var selected_text: String = full_text.substr(sel_start, selected_length)
+	if has_selection and selected_text.ends_with(close_tag) and not selected_text.begins_with(open_tag):
+		selected_length -= close_tag.length()
+		selected_text = full_text.substr(sel_start, selected_length)
+
+	var sel_end: int = sel_start + selected_length
+
+	var result: Dictionary
+
 	if not has_selection:
-		return _toggle_tag_at_caret(full_text, sel_start, encase, open_tag, close_tag)
+		result = _toggle_tag_at_caret(full_text, sel_start, encase, open_tag, close_tag)
+	else:
+		# Case 1: Selection starts and ends with the exact tag pair -> strip edge tags
+		if (
+			selected_text.begins_with(open_tag)
+			and selected_text.ends_with(close_tag)
+			and selected_length >= open_tag.length() + close_tag.length()
+		):
+			result = _strip_edge_tags(full_text, sel_start, selected_text, open_tag, close_tag)
 
-	var sel_end: int = sel_start + selected_text.length()
+		# Case 2: Tags sit immediately adjacent to selection bounds -> strip adjacent tags
+		else:
+			var has_open_before: bool = (
+				sel_start >= open_tag.length()
+				and full_text.substr(sel_start - open_tag.length(), open_tag.length()) == open_tag
+			)
+			var has_close_after: bool = (
+				sel_end + close_tag.length() <= full_text.length()
+				and full_text.substr(sel_end, close_tag.length()) == close_tag
+			)
+			if has_open_before and has_close_after:
+				result = _strip_adjacent_tags(full_text, sel_start, sel_end, selected_length, open_tag, close_tag)
 
-	# Case 1: Selection starts and ends with the exact tag pair -> strip edge tags
-	if (
-		selected_text.begins_with(open_tag)
-		and selected_text.ends_with(close_tag)
-		and selected_text.length() >= open_tag.length() + close_tag.length()
-	):
-		return _strip_edge_tags(full_text, sel_start, selected_text, open_tag, close_tag)
+			# Case 3: Matching tag pair exists INSIDE selection -> strip inner tags & wrap whole selection
+			elif selected_text.contains(open_tag) and selected_text.contains(close_tag):
+				result = _strip_inner_and_wrap(full_text, sel_start, selected_text, encase, open_tag, close_tag)
 
-	# Case 2: Tags sit immediately adjacent to selection bounds -> strip adjacent tags
-	var has_open_before: bool = (
-		sel_start >= open_tag.length()
-		and full_text.substr(sel_start - open_tag.length(), open_tag.length()) == open_tag
-	)
-	var has_close_after: bool = (
-		sel_end + close_tag.length() <= full_text.length()
-		and full_text.substr(sel_end, close_tag.length()) == close_tag
-	)
-	if has_open_before and has_close_after:
-		return _strip_adjacent_tags(full_text, sel_start, sel_end, selected_text, open_tag, close_tag)
+			# Case 4: Selection is enclosed by or outside active tags -> invert or wrap
+			else:
+				result = _close_and_reopen_around(full_text, sel_start, selected_text, encase, open_tag, close_tag)
 
-	# Case 3: Matching tag pair exists INSIDE selection -> strip inner tags & wrap whole selection
-	if selected_text.contains(open_tag) and selected_text.contains(close_tag):
-		return _strip_inner_and_wrap(full_text, sel_start, selected_text, encase, open_tag, close_tag)
-
-	# Case 4: Selection is enclosed by or outside active tags -> invert or wrap
-	return _close_and_reopen_around(full_text, sel_start, selected_text, encase, open_tag, close_tag)
+	return result
 
 
 ## Wraps or unwraps selected line ranges in [ul] list tags.
@@ -171,7 +184,7 @@ static func _strip_adjacent_tags(
 	full_text: String,
 	sel_start: int,
 	sel_end: int,
-	selected_text: String,
+	selected_length: int,
 	open_tag: String,
 	close_tag: String
 ) -> Dictionary:
@@ -181,7 +194,7 @@ static func _strip_adjacent_tags(
 	return {
 		"new_text": new_text,
 		"selection_start": new_start,
-		"selection_end": new_start + selected_text.length()
+		"selection_end": new_start + selected_length
 	}
 
 

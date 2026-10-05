@@ -128,17 +128,19 @@ func delete_plain_range(start_plain: int, end_plain: int) -> void:
 
 ## Applies or removes a BBCode tag over a given plain-text index range.
 ## Returns a Vector2i containing the updated plain-text selection bounds (start, end).
+## Applies or removes a BBCode tag over a given plain-text index range.
+## Returns a Vector2i containing the updated plain-text selection bounds (start, end).
 func toggle_tag_on_range(start_plain: int, end_plain: int, tag: String) -> Vector2i:
 	var start_raw: int = plain_to_raw_index(start_plain)
 	var end_raw: int = plain_to_raw_index(end_plain)
 	var has_selection: bool = start_plain != end_plain
-	var selected_raw: String = raw_text.substr(start_raw, end_raw - start_raw)
+	var selected_length: int = end_raw - start_raw
 
 	var result: Dictionary = BBCodeUtility.toggle_tag(
 		raw_text,
 		has_selection,
 		start_raw,
-		selected_raw,
+		selected_length,
 		tag
 	)
 
