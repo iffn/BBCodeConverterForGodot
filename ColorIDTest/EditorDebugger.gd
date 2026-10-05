@@ -3,10 +3,9 @@ extends Control
 
 @export var editor: RichTextEditor
 @export var editor_panel: Control
+@export var debug_panel: Control
 @export var debug_texture_rect: TextureRect
 @export var info_label: Label
-
-var sampled_mouse_pos_relative: Vector2 = Vector2(-1, -1)
 
 
 func _process(_delta: float) -> void:
@@ -36,8 +35,6 @@ func _process(_delta: float) -> void:
 			var scale_x: float = float(img.get_width()) / ref_panel.size.x
 			var scale_y: float = float(img.get_height()) / ref_panel.size.y
 			img_pixel_pos = Vector2i(local_mouse * Vector2(scale_x, scale_y))
-
-	sampled_mouse_pos_relative = local_mouse
 
 	var sampled_color := Color.BLACK
 	var decoded_id := Vector3i(-1, -1, -1)
@@ -105,21 +102,22 @@ func _process(_delta: float) -> void:
 func _draw() -> void:
 	if not debug_texture_rect:
 		return
+	
+	var mouse_pos_editor = editor_panel.get_local_mouse_position()
+	var offset = debug_panel.global_position - editor_panel.global_position
+	
+	var draw_pos: Vector2 = mouse_pos_editor + offset
 
-	if sampled_mouse_pos_relative.x >= 0 and sampled_mouse_pos_relative.y >= 0:
-		var debug_origin_local: Vector2 = get_global_transform().affine_inverse() * debug_texture_rect.global_position
-		var draw_pos: Vector2 = debug_origin_local + sampled_mouse_pos_relative
+	var gap: float = 2.0
+	var line_length: float = 8.0
+	var line_width: float = 2.0
+	var crosshair_color: Color = Color.RED
 
-		var gap: float = 2.0
-		var line_length: float = 8.0
-		var line_width: float = 2.0
-		var crosshair_color: Color = Color.RED
-
-		# Left line
-		draw_line(draw_pos - Vector2(gap + line_length, 0), draw_pos - Vector2(gap, 0), crosshair_color, line_width)
-		# Right line
-		draw_line(draw_pos + Vector2(gap, 0), draw_pos + Vector2(gap + line_length, 0), crosshair_color, line_width)
-		# Top line
-		draw_line(draw_pos - Vector2(0, gap + line_length), draw_pos - Vector2(0, gap), crosshair_color, line_width)
-		# Bottom line
-		draw_line(draw_pos + Vector2(0, gap), draw_pos + Vector2(0, gap), crosshair_color, line_width)
+	# Left line
+	draw_line(draw_pos - Vector2(gap + line_length, 0), draw_pos - Vector2(gap, 0), crosshair_color, line_width)
+	# Right line
+	draw_line(draw_pos + Vector2(gap, 0), draw_pos + Vector2(gap + line_length, 0), crosshair_color, line_width)
+	# Top line
+	draw_line(draw_pos - Vector2(0, gap + line_length), draw_pos - Vector2(0, gap), crosshair_color, line_width)
+	# Bottom line
+	draw_line(draw_pos + Vector2(0, gap), draw_pos + Vector2(0, gap), crosshair_color, line_width)

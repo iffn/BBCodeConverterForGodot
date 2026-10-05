@@ -96,7 +96,7 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 10
 text = "Stats loading..."
 
-[node name="Debugger" type="Control" parent="." node_paths=PackedStringArray("editor", "editor_panel", "debug_texture_rect", "info_label")]
+[node name="Debugger" type="Control" parent="." node_paths=PackedStringArray("editor", "editor_panel", "debug_panel", "debug_texture_rect", "info_label")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -107,6 +107,7 @@ mouse_filter = 2
 script = ExtResource("3_dbg")
 editor = NodePath("..")
 editor_panel = NodePath("../HBoxContainer/EditorPanel")
+debug_panel = NodePath("../HBoxContainer/DebugPanel")
 debug_texture_rect = NodePath("../HBoxContainer/DebugPanel/VBoxContainer/ViewportPreview")
 info_label = NodePath("../HBoxContainer/DebugPanel/VBoxContainer/DebugInfoLabel")
 
