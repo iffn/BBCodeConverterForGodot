@@ -3,12 +3,30 @@
 [ext_resource type="Script" uid="uid://dnt5ouwqftmwa" path="res://BBCodeConverterForDotNetGodot/ColorIDTest/HitTestViewport.gd" id="1_i14kk"]
 [ext_resource type="Script" uid="uid://8e1t6we13i14" path="res://BBCodeConverterForDotNetGodot/ColorIDTest/CaretAndSelectionOverlay.gd" id="1_xkx6d"]
 [ext_resource type="Script" uid="uid://ddk5l3oh2ee72" path="res://BBCodeConverterForDotNetGodot/ColorIDTest/RichTextEditor.gd" id="2_4qbpd"]
+[ext_resource type="Shader" uid="uid://csf7488uiyekl" path="res://BBCodeConverterForDotNetGodot/ColorIDTest/SelectionOverlay.gdshader" id="2_caphx"]
 [ext_resource type="Script" uid="uid://din71nhh7gj57" path="res://BBCodeConverterForDotNetGodot/ColorIDTest/EditorDebugger.gd" id="3_dbg"]
 
 [sub_resource type="FontVariation" id="FontVariation_moa04"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_i14kk"]
 bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_1wsbi"]
+viewport_path = NodePath("Selection overlay")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_caphx"]
+resource_local_to_scene = true
+shader = ExtResource("2_caphx")
+shader_parameter/mask_texture = SubResource("ViewportTexture_1wsbi")
+shader_parameter/selection_color = Color(0, 0.4, 0.9, 0.5)
+shader_parameter/caret_color = Color(1, 1, 1, 1)
+shader_parameter/caret_blink_speed = 2.0
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_caphx"]
+viewport_path = NodePath("Selection overlay")
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_blvub"]
+viewport_path = NodePath("Text selection")
 
 [node name="ColorIdTest" type="Control" unique_id=458935336 node_paths=PackedStringArray("visible_label", "hit_test_viewport", "overlay")]
 layout_mode = 3
@@ -19,8 +37,8 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("2_4qbpd")
 visible_label = NodePath("HBoxContainer/EditorPanel/VBoxContainer/Visible text")
-hit_test_viewport = NodePath("SubViewport")
-overlay = NodePath("HBoxContainer/EditorPanel/VBoxContainer/Visible text/Overlay")
+hit_test_viewport = NodePath("Text selection")
+overlay = NodePath("HBoxContainer/EditorPanel/VBoxContainer/Visible text/Selection")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=126476793]
 layout_mode = 1
@@ -50,15 +68,10 @@ mouse_filter = 2
 theme_override_fonts/normal_font = SubResource("FontVariation_moa04")
 theme_override_styles/normal = SubResource("StyleBoxFlat_i14kk")
 bbcode_enabled = true
-text = "[bgcolor=#ff0000]T[/bgcolor]est
+text = "This is an exable text that you can select and edit"
 
-T[bgcolor=#0000ff]e[/bgcolor]st
-
-[bgcolor=#ff0000]T[/bgcolor][bgcolor=#0000ff]e[/bgcolor]st
-
-[bgcolor=#ff0000]T[/bgcolor][bgcolor=#0000ff]e[/bgcolor][bgcolor=#ff0000]s[/bgcolor]t"
-
-[node name="Overlay" type="Control" parent="HBoxContainer/EditorPanel/VBoxContainer/Visible text" unique_id=1507390407 node_paths=PackedStringArray("visible_label", "hit_test_viewport")]
+[node name="Selection" type="TextureRect" parent="HBoxContainer/EditorPanel/VBoxContainer/Visible text" unique_id=15706036 node_paths=PackedStringArray("visible_label", "mask_label", "hit_test_viewport")]
+material = SubResource("ShaderMaterial_caphx")
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -66,9 +79,11 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 focus_mode = 2
+texture = SubResource("ViewportTexture_caphx")
 script = ExtResource("1_xkx6d")
 visible_label = NodePath("..")
-hit_test_viewport = NodePath("../../../../../SubViewport")
+mask_label = NodePath("../../../../../Selection overlay/VBoxContainer/Hidden caret text")
+hit_test_viewport = NodePath("../../../../../Text selection")
 
 [node name="DebugPanel" type="Panel" parent="HBoxContainer" unique_id=1626999407]
 custom_minimum_size = Vector2(500, 0)
@@ -89,6 +104,7 @@ text = "=== VIEWPORT TEXTURE PREVIEW ==="
 [node name="ViewportPreview" type="TextureRect" parent="HBoxContainer/DebugPanel/VBoxContainer" unique_id=898783253]
 custom_minimum_size = Vector2(500, 300)
 layout_mode = 2
+texture = SubResource("ViewportTexture_blvub")
 expand_mode = 1
 
 [node name="DebugInfoLabel" type="Label" parent="HBoxContainer/DebugPanel/VBoxContainer" unique_id=258462215]
@@ -96,7 +112,7 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 10
 text = "Stats loading..."
 
-[node name="Debugger" type="Control" parent="." unique_id=470665635 node_paths=PackedStringArray("editor", "editor_panel", "debug_panel", "debug_texture_rect", "info_label")]
+[node name="Debugger with overlay" type="Control" parent="." unique_id=470665635 node_paths=PackedStringArray("editor", "editor_panel", "debug_panel", "debug_texture_rect", "info_label")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -111,19 +127,34 @@ debug_panel = NodePath("../HBoxContainer/DebugPanel")
 debug_texture_rect = NodePath("../HBoxContainer/DebugPanel/VBoxContainer/ViewportPreview")
 info_label = NodePath("../HBoxContainer/DebugPanel/VBoxContainer/DebugInfoLabel")
 
-[node name="SubViewport" type="SubViewport" parent="." unique_id=1667487321 node_paths=PackedStringArray("visible_label", "hidden_label")]
+[node name="Text selection" type="SubViewport" parent="." unique_id=1667487321 node_paths=PackedStringArray("visible_label", "hidden_label")]
 size = Vector2i(500, 300)
 script = ExtResource("1_i14kk")
 visible_label = NodePath("../HBoxContainer/EditorPanel/VBoxContainer/Visible text")
-hidden_label = NodePath("VBoxContainer/Hidden text")
+hidden_label = NodePath("VBoxContainer/Hidden selection text")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="SubViewport" unique_id=1551405072]
+[node name="VBoxContainer" type="VBoxContainer" parent="Text selection" unique_id=1551405072]
 offset_right = 500.0
 offset_bottom = 300.0
 
-[node name="Hidden text" type="RichTextLabel" parent="SubViewport/VBoxContainer" unique_id=817096866]
+[node name="Hidden selection text" type="RichTextLabel" parent="Text selection/VBoxContainer" unique_id=817096866]
 custom_minimum_size = Vector2(500, 300)
 layout_mode = 2
 theme_override_fonts/normal_font = SubResource("FontVariation_moa04")
 theme_override_styles/normal = SubResource("StyleBoxFlat_i14kk")
 bbcode_enabled = true
+
+[node name="Selection overlay" type="SubViewport" parent="." unique_id=1076088300]
+size = Vector2i(500, 300)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Selection overlay" unique_id=427611332]
+offset_right = 500.0
+offset_bottom = 300.0
+
+[node name="Hidden caret text" type="RichTextLabel" parent="Selection overlay/VBoxContainer" unique_id=389375020]
+custom_minimum_size = Vector2(500, 300)
+layout_mode = 2
+theme_override_fonts/normal_font = SubResource("FontVariation_moa04")
+theme_override_styles/normal = SubResource("StyleBoxFlat_i14kk")
+bbcode_enabled = true
+text = "[color=#000000][bgcolor=#000000]First part (Black Text)[/bgcolor][/color] [color=#0000FF][bgcolor=#0000FF]Second part (Blue Text)[/bgcolor][/color][color=#FFFFFF][bgcolor=#000000]|[/bgcolor][/color]"

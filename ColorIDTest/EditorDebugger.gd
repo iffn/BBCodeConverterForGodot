@@ -127,4 +127,4 @@ func _draw() -> void:
 	# Top line
 	draw_line(draw_pos - Vector2(0, gap + line_length), draw_pos - Vector2(0, gap), crosshair_color, line_width)
 	# Bottom line
-	draw_line(draw_pos + Vector2(0, gap), draw_pos + Vector2(0, gap), crosshair_color, line_width)
+	draw_line(draw_pos + Vector2(0, gap), draw_pos + Vector2(0, gap + line_length), crosshair_color, line_width)

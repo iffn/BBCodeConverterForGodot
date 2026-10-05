@@ -2,6 +2,7 @@ class_name CaretAndSelectionOverlay
 extends Control
 
 @export var visible_label: RichTextLabel
+@export var mask_label: RichTextLabel
 @export var hit_test_viewport: HitTestViewport
 
 var text_buffer: TextBuffer
@@ -11,29 +12,16 @@ var caret_index: int = 0
 var selection_anchor: int = -1
 var preferred_x: float = -1.0
 
-# Caret visual parameters
-var caret_color: Color = Color.WHITE
-var caret_width: float = 2.0
-var caret_visible: bool = true
-var caret_timer: Timer
-
-# Selection visual parameters
-var selection_color: Color = Color(0.2, 0.4, 0.8, 0.4)
-
 var _is_dragging: bool = false
 
 
 func _ready() -> void:
 	focus_mode = FOCUS_ALL
-	caret_timer = Timer.new()
-	caret_timer.wait_time = 0.5
-	caret_timer.timeout.connect(_toggle_caret_visibility)
-	add_child(caret_timer)
-	caret_timer.start()
 
 
 func setup(buffer: TextBuffer) -> void:
 	text_buffer = buffer
+	_update_mask_text()
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -51,7 +39,7 @@ func _gui_input(event: InputEvent) -> void:
 				_is_dragging = true
 		else:
 			_is_dragging = false
-			queue_redraw()
+			_update_mask_text()
 
 	elif event is InputEventMouseMotion and _is_dragging:
 		var idx: int = hit_test_viewport.get_plain_index_at_position(event.position)
@@ -107,9 +95,7 @@ func _move_caret_vertical(direction: int) -> void:
 	var target_idx: int = hit_test_viewport.get_plain_index_at_position(sample_pos)
 	if target_idx != -1:
 		caret_index = target_idx
-		caret_visible = true
-		caret_timer.start()
-		queue_redraw()
+		_update_mask_text()
 
 
 func _handle_selection_anchor(shift_pressed: bool) -> void:
@@ -125,9 +111,7 @@ func _reset_preferred_x() -> void:
 
 func set_caret_index(idx: int) -> void:
 	caret_index = clampi(idx, 0, text_buffer.plain_text.length() if text_buffer else 0)
-	caret_visible = true
-	caret_timer.start()
-	queue_redraw()
+	_update_mask_text()
 
 
 func get_selection_range() -> Vector2i:
@@ -143,29 +127,54 @@ func has_selection() -> bool:
 
 func clear_selection() -> void:
 	selection_anchor = -1
-	queue_redraw()
+	_update_mask_text()
 
 
-func _draw() -> void:
-	if not hit_test_viewport or not text_buffer:
+func _update_mask_text() -> void:
+	if not mask_label or not text_buffer:
 		return
 
-	# Draw Selection Rectangles
-	var sel := get_selection_range()
-	if sel.x != sel.y:
-		for i in range(sel.x, sel.y):
-			var bounds: Rect2 = hit_test_viewport.get_character_bounds(i)
-			if bounds.size != Vector2.ZERO:
-				draw_rect(bounds, selection_color, true)
+	var full_text: String = text_buffer.plain_text
+	var sel_range: Vector2i = get_selection_range()
+	var start_idx: int = sel_range.x
+	var end_idx: int = sel_range.y
 
-	# Draw Caret Line
-	if caret_visible and has_focus():
-		var caret_info: Dictionary = hit_test_viewport.get_caret_position_from_index(caret_index, preferred_x)
-		var pos: Vector2 = caret_info.position
-		var height: float = caret_info.height
-		draw_line(pos, pos + Vector2(0, height), caret_color, caret_width)
+	var max_active_index: int = max(end_idx, caret_index)
+	var active_text: String = full_text.substr(0, max_active_index)
 
+	var bbcode: String = ""
+	var caret_at_start: bool = (selection_anchor != -1 and caret_index < selection_anchor)
 
-func _toggle_caret_visibility() -> void:
-	caret_visible = !caret_visible
-	queue_redraw()
+	if not has_selection():
+		var pre_caret: String = active_text.substr(0, caret_index)
+		if not pre_caret.is_empty():
+			bbcode += "[color=#000000][bgcolor=#000000]%s[/bgcolor][/color]" % pre_caret
+
+		if has_focus():
+			bbcode += "[color=#FFFFFF][bgcolor=#000000]|[/bgcolor][/color]"
+
+	elif caret_at_start:
+		var pre_caret: String = active_text.substr(0, start_idx)
+		if not pre_caret.is_empty():
+			bbcode += "[color=#000000][bgcolor=#000000]%s[/bgcolor][/color]" % pre_caret
+
+		if has_focus():
+			bbcode += "[color=#FFFFFF][bgcolor=#000000]|[/bgcolor][/color]"
+
+		var selected_text: String = active_text.substr(start_idx, end_idx - start_idx)
+		if not selected_text.is_empty():
+			bbcode += "[color=#0000FF][bgcolor=#0000FF]%s[/bgcolor][/color]" % selected_text
+
+	else:
+		var pre_sel: String = active_text.substr(0, start_idx)
+		if not pre_sel.is_empty():
+			bbcode += "[color=#000000][bgcolor=#000000]%s[/bgcolor][/color]" % pre_sel
+
+		var selected_text: String = active_text.substr(start_idx, end_idx - start_idx)
+		if not selected_text.is_empty():
+			bbcode += "[color=#0000FF][bgcolor=#0000FF]%s[/bgcolor][/color]" % selected_text
+
+		if has_focus():
+			bbcode += "[color=#FFFFFF][bgcolor=#000000]|[/bgcolor][/color]"
+
+	mask_label.text = bbcode
