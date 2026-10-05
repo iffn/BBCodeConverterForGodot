@@ -26,6 +26,8 @@ var caret_timer: Timer
 
 var last_known_caret_pos: Vector2 = Vector2.ZERO
 var cached_caret_pos: Vector2 = Vector2.ZERO
+var cached_caret_height: float = -1.0 # Tracks dynamic line height at caret
+var preferred_x: float = -1.0
 
 const CARET_WIDTH: float = 2.0
 const CARET_COLOR: Color = Color(1.0, 1.0, 1.0, 0.9)
@@ -61,6 +63,7 @@ func _gui_input(event: InputEvent) -> void:
 		if event.pressed:
 			grab_focus()
 			last_known_caret_pos = event.position
+			preferred_x = event.position.x
 			var clicked_idx: int = hit_test_viewport.get_plain_index_at_position(event.position)
 			self.caret_index = clicked_idx if clicked_idx != -1 else text_buffer.plain_text.length()
 			selection_start = caret_index
@@ -72,6 +75,7 @@ func _gui_input(event: InputEvent) -> void:
 
 	elif event is InputEventMouseMotion and is_dragging:
 		last_known_caret_pos = event.position
+		preferred_x = event.position.x
 		var hovered_idx: int = hit_test_viewport.get_plain_index_at_position(event.position)
 		if hovered_idx != -1:
 			self.caret_index = hovered_idx
@@ -87,6 +91,7 @@ func _handle_keyboard_input(event: InputEventKey) -> void:
 
 	match event.keycode:
 		KEY_LEFT:
+			preferred_x = -1.0
 			if event.shift_pressed and selection_start == -1:
 				selection_start = caret_index
 			self.caret_index = max(0, caret_index - 1)
@@ -96,6 +101,7 @@ func _handle_keyboard_input(event: InputEventKey) -> void:
 				_clear_selection()
 
 		KEY_RIGHT:
+			preferred_x = -1.0
 			if event.shift_pressed and selection_start == -1:
 				selection_start = caret_index
 			self.caret_index = min(plain_len, caret_index + 1)
@@ -104,7 +110,14 @@ func _handle_keyboard_input(event: InputEventKey) -> void:
 			else:
 				_clear_selection()
 
+		KEY_UP:
+			_move_caret_vertically(-1, event.shift_pressed)
+
+		KEY_DOWN:
+			_move_caret_vertically(1, event.shift_pressed)
+
 		KEY_BACKSPACE:
+			preferred_x = -1.0
 			if _has_selection():
 				_delete_selection()
 			elif caret_index > 0:
@@ -113,12 +126,14 @@ func _handle_keyboard_input(event: InputEventKey) -> void:
 				self.caret_index = target_idx
 
 		KEY_DELETE:
+			preferred_x = -1.0
 			if _has_selection():
 				_delete_selection()
 			elif caret_index < plain_len:
 				text_buffer.delete_plain_range(caret_index, caret_index + 1)
 
 		KEY_ENTER:
+			preferred_x = -1.0
 			if _has_selection():
 				_delete_selection()
 			var target_idx: int = caret_index
@@ -127,6 +142,7 @@ func _handle_keyboard_input(event: InputEventKey) -> void:
 
 		_:
 			if event.unicode > 31 and event.unicode != 127:
+				preferred_x = -1.0
 				var typed_char: String = String.chr(event.unicode)
 				if _has_selection():
 					_delete_selection()
@@ -137,13 +153,68 @@ func _handle_keyboard_input(event: InputEventKey) -> void:
 	_reset_caret_blink()
 
 
+func _move_caret_vertically(line_direction: int, shift_pressed: bool) -> void:
+	if not text_buffer or text_buffer.plain_text.length() == 0:
+		return
+
+	if preferred_x < 0.0:
+		preferred_x = cached_caret_pos.x
+
+	var current_line: int = _get_line_count(caret_index)
+	var target_line: int = current_line + line_direction
+
+	if target_line < 0 or target_line > text_buffer.plain_text.count("\n"):
+		return
+
+	if shift_pressed and selection_start == -1:
+		selection_start = caret_index
+
+	var target_line_start: int = _get_line_index_by_count(target_line)
+	var target_line_end: int = text_buffer.plain_text.find("\n", target_line_start)
+	if target_line_end == -1:
+		target_line_end = text_buffer.plain_text.length()
+
+	var best_idx: int = target_line_start
+	var closest_dist: float = INF
+
+	for i in range(target_line_start, target_line_end + 1):
+		var pos: Vector2 = _get_caret_screen_position(i)
+		var dist: float = abs(pos.x - preferred_x)
+		if dist < closest_dist:
+			closest_dist = dist
+			best_idx = i
+
+	var saved_preferred_x: float = preferred_x
+	self.caret_index = best_idx
+	preferred_x = saved_preferred_x
+
+	if shift_pressed:
+		selection_end = caret_index
+	else:
+		_clear_selection()
+
+
+func _get_line_index_by_count(line_target: int) -> int:
+	if line_target <= 0:
+		return 0
+	var count: int = 0
+	var idx: int = 0
+	while idx < text_buffer.plain_text.length():
+		if text_buffer.plain_text[idx] == "\n":
+			count += 1
+			if count == line_target:
+				return idx + 1
+		idx += 1
+	return text_buffer.plain_text.length()
+
+
 func _draw() -> void:
 	if not has_focus() or not text_buffer or not visible_label:
 		return
 
 	if caret_visible and caret_index >= 0:
-		var font_height: float = _get_font_height()
-		draw_line(cached_caret_pos, cached_caret_pos + Vector2(0, font_height), CARET_COLOR, CARET_WIDTH)
+		var draw_h: float = cached_caret_height if cached_caret_height > 0.0 else _get_font_height()
+		draw_line(cached_caret_pos, cached_caret_pos + Vector2(0, draw_h), CARET_COLOR, CARET_WIDTH)
 
 
 func _update_caret_position() -> void:
@@ -167,14 +238,13 @@ func _get_caret_screen_position(idx: int) -> Vector2:
 	var target_char_idx: int = idx - 1
 	var target_char: String = text_buffer.plain_text[target_char_idx]
 
-	# Only skip unrendered whitespace like tabs and newlines
 	if target_char in ["\t", "\n"]:
-		# print("[Caret Search] Skipping unrendered whitespace char '%s' at idx %d" % [target_char, idx])
+		cached_caret_height = _get_font_height()
 		return _calculate_font_fallback_pos(idx, font, font_size)
 
 	var tex: Texture2D = hit_test_viewport.get_texture()
 	if not tex:
-		# print("[Caret Search] HitTestViewport texture is null.")
+		cached_caret_height = _get_font_height()
 		return _calculate_font_fallback_pos(idx, font, font_size)
 
 	var img: Image = tex.get_image()
@@ -182,26 +252,29 @@ func _get_caret_screen_position(idx: int) -> Vector2:
 		var target_color: Color = ColorIDMapper.get_color_from_index(text_buffer, target_char_idx)
 		var estimated_pos: Vector2 = _calculate_font_fallback_pos(idx, font, font_size)
 
+		if preferred_x >= 0.0:
+			estimated_pos.x = preferred_x
+
 		var found_pos: Vector2 = _find_target_color_radially(img, estimated_pos, target_color)
 		if found_pos != Vector2.INF:
-			# print("[Caret Search] Match found at idx %d (%s) -> Pos: %s" % [idx, target_char, found_pos])
 			return found_pos
 
-	# print("[Caret Search] Search missed at idx %d (%s) -> Using fallback pos." % [idx, target_char])
+	cached_caret_height = _get_font_height()
 	return _calculate_font_fallback_pos(idx, font, font_size)
 
 
-## Scans outward step-by-step from start_pos until the target color is matched
+## Scans outward step-by-step from start_pos until target_color is matched on both axes
 func _find_target_color_radially(img: Image, start_pos: Vector2, target_color: Color) -> Vector2:
 	var width: int = img.get_width()
 	var height: int = img.get_height()
 	var start_x: int = clampi(int(start_pos.x), 0, width - 1)
 	var start_y: int = clampi(int(start_pos.y), 0, height - 1)
 
-	var max_radius: int = 150 # Maximum horizontal/vertical distance to search
-	
+	var max_radius: int = 200
+	var gap_tolerance: int = 2 # Allows jumping up to 2 empty/mismatched pixels in vertical scans
+
 	for r in range(0, max_radius):
-		for y_offset in range(-8, 9): # Vertical jitter allowance
+		for y_offset in range(-40, 41):
 			var test_y: int = start_y + y_offset
 			if test_y < 0 or test_y >= height:
 				continue
@@ -213,7 +286,7 @@ func _find_target_color_radially(img: Image, start_pos: Vector2, target_color: C
 
 				var px: Color = img.get_pixel(test_x, test_y)
 				if px.a > 0.1 and _colors_match(px, target_color):
-					# Find the right edge of this glyph segment
+					# 1. Find rightmost boundary of character
 					var rightmost_x: int = test_x
 					while rightmost_x + 1 < width:
 						var next_px: Color = img.get_pixel(rightmost_x + 1, test_y)
@@ -221,12 +294,46 @@ func _find_target_color_radially(img: Image, start_pos: Vector2, target_color: C
 							rightmost_x += 1
 						else:
 							break
+
+					# 2. Expand upwards with gap tolerance
+					var line_top_y: int = test_y
+					var curr_y: int = test_y
+					var gaps: int = 0
 					
-					var line_h: float = _get_font_height()
-					return Vector2(rightmost_x + 1.0, _get_line_count(caret_index) * line_h)
+					while curr_y - 1 >= 0:
+						var up_px: Color = img.get_pixel(test_x, curr_y - 1)
+						if up_px.a > 0.1 and _colors_match(up_px, target_color):
+							line_top_y = curr_y - 1
+							gaps = 0
+						else:
+							gaps += 1
+							if gaps > gap_tolerance:
+								break
+						curr_y -= 1
+
+					# 3. Expand downwards with gap tolerance
+					var line_bottom_y: int = test_y
+					curr_y = test_y
+					gaps = 0
+
+					while curr_y + 1 < height:
+						var down_px: Color = img.get_pixel(test_x, curr_y + 1)
+						if down_px.a > 0.1 and _colors_match(down_px, target_color):
+							line_bottom_y = curr_y + 1
+							gaps = 0
+						else:
+							gaps += 1
+							if gaps > gap_tolerance:
+								break
+						curr_y += 1
+
+					var default_h: float = _get_font_height()
+					var measured_h: float = float(line_bottom_y - line_top_y + 1)
+
+					cached_caret_height = max(default_h, measured_h)
+					return Vector2(rightmost_x + 1.0, float(line_top_y))
 
 	return Vector2.INF
-
 
 func _colors_match(c1: Color, c2: Color, tol: float = 0.001) -> bool:
 	return abs(c1.r - c2.r) < tol and abs(c1.g - c2.g) < tol and abs(c1.b - c2.b) < tol
