@@ -167,18 +167,27 @@ func _get_caret_screen_position(idx: int) -> Vector2:
 	var target_char_idx: int = idx - 1
 	var target_char: String = text_buffer.plain_text[target_char_idx]
 
-	if target_char in [" ", "\t", "\n"]:
+	# Only skip unrendered whitespace like tabs and newlines
+	if target_char in ["\t", "\n"]:
+		# print("[Caret Search] Skipping unrendered whitespace char '%s' at idx %d" % [target_char, idx])
 		return _calculate_font_fallback_pos(idx, font, font_size)
 
-	var img: Image = hit_test_viewport.get_texture().get_image()
+	var tex: Texture2D = hit_test_viewport.get_texture()
+	if not tex:
+		# print("[Caret Search] HitTestViewport texture is null.")
+		return _calculate_font_fallback_pos(idx, font, font_size)
+
+	var img: Image = tex.get_image()
 	if img and target_char_idx < text_buffer.plain_text_ids.size():
 		var target_color: Color = ColorIDMapper.get_color_from_index(text_buffer, target_char_idx)
+		var estimated_pos: Vector2 = _calculate_font_fallback_pos(idx, font, font_size)
 
-		# Search radially outward from the starting position
-		var found_pos: Vector2 = _find_target_color_radially(img, last_known_caret_pos, target_color)
+		var found_pos: Vector2 = _find_target_color_radially(img, estimated_pos, target_color)
 		if found_pos != Vector2.INF:
+			# print("[Caret Search] Match found at idx %d (%s) -> Pos: %s" % [idx, target_char, found_pos])
 			return found_pos
 
+	# print("[Caret Search] Search missed at idx %d (%s) -> Using fallback pos." % [idx, target_char])
 	return _calculate_font_fallback_pos(idx, font, font_size)
 
 
