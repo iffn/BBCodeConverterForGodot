@@ -4,89 +4,141 @@ extends Control
 @export var visible_label: RichTextLabel
 @export var hit_test_viewport: HitTestViewport
 @export var overlay: CaretAndSelectionOverlay
+@export var scroll_bar: VScrollBar
 
 var text_buffer: TextBuffer
 
 
 func _ready() -> void:
-	# Initialize data buffer
-	text_buffer = TextBuffer.new("[b]Hello[/b] World! Welcome to the [color=#ff0000]BBCode[/color] [font_size=24]WYSIWYG[/font_size] [font_size=14]editor[/font_size].")
-	
-	# Connect and setup sub-components
+	text_buffer = TextBuffer.new()
+
 	if hit_test_viewport:
 		hit_test_viewport.setup(text_buffer)
-		
+
 	if overlay:
-		overlay.visible_label = visible_label
-		overlay.hit_test_viewport = hit_test_viewport
 		overlay.setup(text_buffer)
-		
+
+	if scroll_bar:
+		scroll_bar.value_changed.connect(_on_scroll_changed)
+
 	if visible_label:
-		visible_label.bbcode_enabled = true
-		_update_visible_label()
-		
-		# Connect vertical scrollbar signal for viewport synchronization
-		var v_bar = visible_label.get_v_scroll_bar()
-		if v_bar:
-			v_bar.value_changed.connect(_on_scroll_changed)
-			
+		text_buffer.set_raw_text(visible_label.text)
+
 	text_buffer.text_changed.connect(_on_buffer_text_changed)
 
 
-## Public API: Sets new raw BBCode string
-func set_bbcode(bbcode: String) -> void:
-	text_buffer.set_raw_text(bbcode)
-
-
-## Public API: Returns the underlying raw BBCode string
-func get_bbcode() -> String:
-	return text_buffer.raw_text
-
-
-## Public API: Applies a BBCode tag over the active selection range (e.g. "b", "i", "color=#00ff00")
-func apply_tag_to_selection(tag: String) -> void:
-	if not overlay or not overlay._has_selection():
+func _unhandled_key_input(event: InputEvent) -> void:
+	if not (event is InputEventKey and event.pressed) or not overlay:
 		return
-		
-	var start_plain: int = min(overlay.selection_start, overlay.selection_end)
-	var end_plain: int = max(overlay.selection_start, overlay.selection_end)
-	
-	var start_raw: int = text_buffer.plain_to_raw_map[start_plain]
-	var end_raw: int = 0
-	if end_plain == text_buffer.plain_text.length():
-		end_raw = text_buffer.raw_text.length()
-	else:
-		end_raw = text_buffer.plain_to_raw_map[end_plain]
-		
-	# Extract base tag name for closing tag (e.g., "color=#ff0000" -> "color")
-	var tag_name: String = tag.split("=")[0]
-	var open_tag: String = "[" + tag + "]"
-	var close_tag: String = "[/" + tag_name + "]"
-	
-	# Insert closing tag first, then opening tag to preserve relative offsets
-	text_buffer.raw_text = text_buffer.raw_text.insert(end_raw, close_tag)
-	text_buffer.raw_text = text_buffer.raw_text.insert(start_raw, open_tag)
-	
-	text_buffer.rebuild_id_mappings()
+
+	var key_event := event as InputEventKey
+	var ctrl: bool = key_event.ctrl_pressed or key_event.meta_pressed
+
+	# 1. Formatting Hotkeys
+	if ctrl:
+		match key_event.keycode:
+			KEY_B:
+				apply_tag_to_selection("b")
+				get_viewport().set_input_as_handled()
+				return
+			KEY_I:
+				apply_tag_to_selection("i")
+				get_viewport().set_input_as_handled()
+				return
+			KEY_U:
+				apply_tag_to_selection("u")
+				get_viewport().set_input_as_handled()
+				return
+
+	# 2. Backspace & Delete
+	if key_event.keycode == KEY_BACKSPACE:
+		_handle_backspace()
+		get_viewport().set_input_as_handled()
+		return
+	elif key_event.keycode == KEY_DELETE:
+		_handle_delete()
+		get_viewport().set_input_as_handled()
+		return
+
+	# 3. Enter / Return Key
+	elif key_event.keycode == KEY_ENTER or key_event.keycode == KEY_KP_ENTER:
+		_handle_text_input("\n")
+		get_viewport().set_input_as_handled()
+		return
+
+	# 4. Printable Character Input
+	if key_event.unicode > 31 and not ctrl:
+		_handle_text_input(String.chr(key_event.unicode))
+		get_viewport().set_input_as_handled()
+
+
+func _handle_text_input(text_to_insert: String) -> void:
+	var sel: Vector2i = overlay.get_selection_range()
+	var insert_idx: int = overlay.caret_index
+
+	if sel.x != sel.y:
+		text_buffer.delete_plain_range(sel.x, sel.y)
+		insert_idx = sel.x
+		overlay.clear_selection()
+
+	text_buffer.insert_text_at_plain_index(insert_idx, text_to_insert)
+	overlay.set_caret_index(insert_idx + text_to_insert.length())
+
+
+func _handle_backspace() -> void:
+	var sel: Vector2i = overlay.get_selection_range()
+
+	if sel.x != sel.y:
+		text_buffer.delete_plain_range(sel.x, sel.y)
+		overlay.set_caret_index(sel.x)
+		overlay.clear_selection()
+	elif overlay.caret_index > 0:
+		var target_idx: int = overlay.caret_index - 1
+		text_buffer.delete_plain_range(target_idx, overlay.caret_index)
+		overlay.set_caret_index(target_idx)
+
+
+func _handle_delete() -> void:
+	var sel: Vector2i = overlay.get_selection_range()
+
+	if sel.x != sel.y:
+		text_buffer.delete_plain_range(sel.x, sel.y)
+		overlay.set_caret_index(sel.x)
+		overlay.clear_selection()
+	elif overlay.caret_index < text_buffer.plain_text.length():
+		text_buffer.delete_plain_range(overlay.caret_index, overlay.caret_index + 1)
+
+
+func apply_tag_to_selection(tag_name: String) -> void:
+	if not overlay or not text_buffer:
+		return
+
+	var sel: Vector2i = overlay.get_selection_range()
+	if sel.x == sel.y:
+		return
+
+	text_buffer.toggle_tag_on_range(sel.x, sel.y, tag_name)
+	overlay.selection_anchor = sel.x
+	overlay.set_caret_index(sel.y)
+
+
+func get_active_formatting() -> Array[String]:
+	if not overlay or not text_buffer:
+		return []
+	return text_buffer.get_active_tags_at_index(overlay.caret_index)
 
 
 func _on_buffer_text_changed() -> void:
-	_update_visible_label()
-
-
-func _update_visible_label() -> void:
 	if visible_label:
 		visible_label.text = text_buffer.raw_text
 
+	if overlay:
+		overlay.queue_redraw()
 
-func _on_scroll_changed(_value: float) -> void:
-	if not visible_label or not hit_test_viewport:
-		return
-		
-	var v_val: int = 0
-	var v_bar = visible_label.get_v_scroll_bar()
-	
-	if v_bar:
-		v_val = int(v_bar.value)
-		
-	hit_test_viewport.sync_scroll(v_val)
+
+func _on_scroll_changed(value: float) -> void:
+	var int_val: int = int(value)
+	if visible_label:
+		visible_label.scroll_to_line(int_val)
+	if hit_test_viewport:
+		hit_test_viewport.sync_scroll(int_val)
