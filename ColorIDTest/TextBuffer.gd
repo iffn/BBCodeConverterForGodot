@@ -74,11 +74,7 @@ func rebuild_id_mappings() -> void:
 
 
 func _append_index_mapping(plain_idx: int, raw_idx: int) -> void:
-	var sector: int = int(float(plain_idx) / float(ColorIDMapper.SECTOR_CHUNK_SIZE))
-	var offset: int = plain_idx % ColorIDMapper.SECTOR_CHUNK_SIZE
-
-	var vec_id := Vector3i(sector, offset, 0)
-	var flat_id := ColorIDMapper.to_flat_id(vec_id)
+	var flat_id: int = plain_idx
 
 	plain_text_ids.append(flat_id)
 	flat_id_to_plain_index[flat_id] = plain_idx
