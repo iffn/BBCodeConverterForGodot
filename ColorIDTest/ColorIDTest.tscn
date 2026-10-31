@@ -76,66 +76,66 @@ offset_bottom = 300.0
 layout_mode = 2
 text = "=== INPUT FIELD ==="
 
-[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/EditorPanel/VBoxContainer" unique_id=833189444]
+[node name="Tools" type="HBoxContainer" parent="HBoxContainer/EditorPanel/VBoxContainer" unique_id=833189444]
 layout_mode = 2
 
-[node name="Bold" parent="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer" unique_id=1675335921 instance=ExtResource("2_qkvdn")]
+[node name="Bold" parent="HBoxContainer/EditorPanel/VBoxContainer/Tools" unique_id=1675335921 instance=ExtResource("2_qkvdn")]
 layout_mode = 2
 icon = ExtResource("3_4xweg")
 
-[node name="Italic" parent="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer" unique_id=427688653 instance=ExtResource("2_qkvdn")]
+[node name="Italic" parent="HBoxContainer/EditorPanel/VBoxContainer/Tools" unique_id=427688653 instance=ExtResource("2_qkvdn")]
 layout_mode = 2
 icon = ExtResource("4_ywt7b")
 
-[node name="Strikethrough" parent="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer" unique_id=157089643 instance=ExtResource("2_qkvdn")]
+[node name="Strikethrough" parent="HBoxContainer/EditorPanel/VBoxContainer/Tools" unique_id=157089643 instance=ExtResource("2_qkvdn")]
 layout_mode = 2
 icon = ExtResource("5_bsfep")
 
-[node name="More fonts" parent="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer" unique_id=1794951604 instance=ExtResource("2_qkvdn")]
+[node name="More fonts" parent="HBoxContainer/EditorPanel/VBoxContainer/Tools" unique_id=1794951604 instance=ExtResource("2_qkvdn")]
 layout_mode = 2
 icon = ExtResource("6_pcwyy")
 
-[node name="Bullet list" parent="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer" unique_id=1319335947 instance=ExtResource("2_qkvdn")]
+[node name="Bullet list" parent="HBoxContainer/EditorPanel/VBoxContainer/Tools" unique_id=1319335947 instance=ExtResource("2_qkvdn")]
 layout_mode = 2
 icon = ExtResource("7_uxcls")
 
-[node name="Alignment left" parent="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer" unique_id=799326204 instance=ExtResource("2_qkvdn")]
+[node name="Alignment left" parent="HBoxContainer/EditorPanel/VBoxContainer/Tools" unique_id=799326204 instance=ExtResource("2_qkvdn")]
 layout_mode = 2
 icon = ExtResource("8_n52jn")
 
-[node name="Alignment center" parent="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer" unique_id=286773153 instance=ExtResource("2_qkvdn")]
+[node name="Alignment center" parent="HBoxContainer/EditorPanel/VBoxContainer/Tools" unique_id=286773153 instance=ExtResource("2_qkvdn")]
 layout_mode = 2
 icon = ExtResource("9_1fdkj")
 
-[node name="Alignment block" parent="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer" unique_id=34433151 instance=ExtResource("2_qkvdn")]
+[node name="Alignment block" parent="HBoxContainer/EditorPanel/VBoxContainer/Tools" unique_id=34433151 instance=ExtResource("2_qkvdn")]
 layout_mode = 2
 icon = ExtResource("10_js62u")
 
-[node name="Paragraph" parent="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer" unique_id=1745454421 instance=ExtResource("2_qkvdn")]
+[node name="Paragraph" parent="HBoxContainer/EditorPanel/VBoxContainer/Tools" unique_id=1745454421 instance=ExtResource("2_qkvdn")]
 layout_mode = 2
 icon = ExtResource("11_vdsbw")
 
-[node name="Link" parent="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer" unique_id=2128148859 instance=ExtResource("2_qkvdn")]
+[node name="Link" parent="HBoxContainer/EditorPanel/VBoxContainer/Tools" unique_id=2128148859 instance=ExtResource("2_qkvdn")]
 layout_mode = 2
 icon = ExtResource("12_80ttl")
 
-[node name="Image" parent="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer" unique_id=753966783 instance=ExtResource("2_qkvdn")]
+[node name="Image" parent="HBoxContainer/EditorPanel/VBoxContainer/Tools" unique_id=753966783 instance=ExtResource("2_qkvdn")]
 layout_mode = 2
 icon = ExtResource("13_yuub4")
 
-[node name="More links" parent="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer" unique_id=841921098 instance=ExtResource("2_qkvdn")]
+[node name="More links" parent="HBoxContainer/EditorPanel/VBoxContainer/Tools" unique_id=841921098 instance=ExtResource("2_qkvdn")]
 layout_mode = 2
 icon = ExtResource("6_pcwyy")
 
-[node name="Undo" parent="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer" unique_id=1065671755 instance=ExtResource("2_qkvdn")]
+[node name="Undo" parent="HBoxContainer/EditorPanel/VBoxContainer/Tools" unique_id=1065671755 instance=ExtResource("2_qkvdn")]
 layout_mode = 2
 icon = ExtResource("14_al30l")
 
-[node name="Redo" parent="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer" unique_id=1904523788 instance=ExtResource("2_qkvdn")]
+[node name="Redo" parent="HBoxContainer/EditorPanel/VBoxContainer/Tools" unique_id=1904523788 instance=ExtResource("2_qkvdn")]
 layout_mode = 2
 icon = ExtResource("15_implj")
 
-[node name="History" parent="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer" unique_id=1336660461 instance=ExtResource("2_qkvdn")]
+[node name="History" parent="HBoxContainer/EditorPanel/VBoxContainer/Tools" unique_id=1336660461 instance=ExtResource("2_qkvdn")]
 layout_mode = 2
 icon = ExtResource("6_pcwyy")
 
@@ -245,9 +245,9 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_i14kk")
 bbcode_enabled = true
 text = "[color=#000000][bgcolor=#000000]First part (Black Text)[/bgcolor][/color] [color=#0000FF][bgcolor=#0000FF]Second part (Blue Text)[/bgcolor][/color][color=#FFFFFF][bgcolor=#000000]|[/bgcolor][/color]"
 
-[connection signal="button_down" from="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer/Bold" to="." method="toggle_bold"]
-[connection signal="button_down" from="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer/Italic" to="." method="toggle_italic"]
-[connection signal="button_down" from="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer/Bullet list" to="." method="toggle_strikethrough"]
-[connection signal="button_down" from="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer/Alignment left" to="." method="toggle_left"]
-[connection signal="button_down" from="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer/Alignment center" to="." method="toggle_center"]
-[connection signal="button_down" from="HBoxContainer/EditorPanel/VBoxContainer/HBoxContainer/Alignment block" to="." method="toggle_fill"]
+[connection signal="button_down" from="HBoxContainer/EditorPanel/VBoxContainer/Tools/Bold" to="." method="toggle_bold"]
+[connection signal="button_down" from="HBoxContainer/EditorPanel/VBoxContainer/Tools/Italic" to="." method="toggle_italic"]
+[connection signal="button_down" from="HBoxContainer/EditorPanel/VBoxContainer/Tools/Strikethrough" to="." method="toggle_strikethrough"]
+[connection signal="button_down" from="HBoxContainer/EditorPanel/VBoxContainer/Tools/Alignment left" to="." method="toggle_left"]
+[connection signal="button_down" from="HBoxContainer/EditorPanel/VBoxContainer/Tools/Alignment center" to="." method="toggle_center"]
+[connection signal="button_down" from="HBoxContainer/EditorPanel/VBoxContainer/Tools/Alignment block" to="." method="toggle_fill"]
