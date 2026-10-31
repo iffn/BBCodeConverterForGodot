@@ -1,6 +1,13 @@
 class_name HitTestViewport
 extends SubViewport
 
+## ============================================================================
+## * Renders an offscreen viewport of the text painted in unique color IDs
+## * Translates mouse coordinates and clicks back to plain text character indices
+## * Locates exact character bounding boxes and caret positions visually
+## * Syncs properties, styling, and scrolling with the main visible text label
+## ============================================================================
+
 @export var visible_label: RichTextLabel
 @export var hidden_label: RichTextLabel
 

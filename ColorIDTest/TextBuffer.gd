@@ -1,6 +1,13 @@
 class_name TextBuffer
 extends RefCounted
 
+## ============================================================================
+## * Stores the current state of the text
+## * Provides the text with and without formatting tags
+## * Provides functions for text editing
+## * Optimized for fast read, slow write
+## ============================================================================
+
 signal text_changed
 
 # Raw text including invisible BBCode tags
@@ -122,8 +129,6 @@ func delete_plain_range(start_plain: int, end_plain: int) -> void:
 	rebuild_id_mappings()
 
 
-## Applies or removes a BBCode tag over a given plain-text index range.
-## Returns a Vector2i containing the updated plain-text selection bounds (start, end).
 ## Applies or removes a BBCode tag over a given plain-text index range.
 ## Returns a Vector2i containing the updated plain-text selection bounds (start, end).
 func toggle_tag_on_range(start_plain: int, end_plain: int, tag: String) -> Vector2i:

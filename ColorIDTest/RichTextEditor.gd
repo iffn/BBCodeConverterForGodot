@@ -1,6 +1,13 @@
 class_name RichTextEditor
 extends Control
 
+## ============================================================================
+## * Acts as the main controller for the rich text editor component
+## * Coordinates the TextBuffer, HitTestViewport, and CaretAndSelectionOverlay
+## * Handles user input, keyboard shortcuts, formatting hotkeys, and text edits
+## * Manages synchronization between text state changes and UI rendering
+## ============================================================================
+
 @export var visible_label: RichTextLabel
 @export var hit_test_viewport: HitTestViewport
 @export var overlay: CaretAndSelectionOverlay

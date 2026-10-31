@@ -1,6 +1,13 @@
 class_name CaretAndSelectionOverlay
 extends Control
 
+## ============================================================================
+## * Manages caret positioning and text selection states
+## * Handles mouse clicks, dragging, and keyboard navigation (arrows/shifts)
+## * Updates visual overlays for text selections and the active cursor
+## * Relies on HitTestViewport to translate pixel coordinates to character indices
+## ============================================================================
+
 @export var visible_label: RichTextLabel
 @export var mask_label: RichTextLabel
 @export var hit_test_viewport: HitTestViewport

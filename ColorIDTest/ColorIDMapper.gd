@@ -1,6 +1,20 @@
 class_name ColorIDMapper
 extends RefCounted
 
+## ============================================================================
+## * TYPE: Utility
+## * IDEA: Encode each character with a unique color.
+## * GOAL: Define the conversion between character index and color.
+## * HOW: 
+##   - Trade-offs: Character mapping can be implemented via dynamic spatial structures, 
+##     precomputed lookup tables, or direct mathematical encoding, each with varying 
+##     read and write optimization trade-offs.
+##   - Current implementation: Uses direct mathematical conversion mapping flat IDs via 
+##     r * 256 * 256 + g * 256 + b to support up to 16 million characters.
+##   - Performance: Simple and fast to read, but slow generate, 
+##     as any text change requires a full re-index pass of the character map.
+## ============================================================================
+
 const MAX_SECTORS: int = 256
 const MAX_BASES: int = 256
 const MAX_EXTENSIONS: int = 256
