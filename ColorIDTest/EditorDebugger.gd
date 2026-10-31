@@ -3,7 +3,8 @@ extends Control
 
 @export var editor: RichTextEditor
 @export var editor_panel: Control
-@export var debug_panel: Control
+@export var text_selection_display: Control
+@export var selection_overlay_display: Control
 @export var debug_texture_rect: TextureRect
 @export var info_label: Label
 @export var raw_output: LineEdit
@@ -108,26 +109,31 @@ func _process(_delta: float) -> void:
 	if raw_output and raw_output.text != buffer.raw_text:
 		raw_output.text = buffer.raw_text
 
-
 func _draw() -> void:
-	if not debug_texture_rect:
-		return
-	
-	var mouse_pos_editor = editor_panel.get_local_mouse_position()
-	var offset = debug_panel.global_position - editor_panel.global_position
-	
-	var draw_pos: Vector2 = mouse_pos_editor + offset
+		
+	# 1. Get normalized mouse position on editor_panel (0.0 to 1.0)
+	var norm_mouse = Vector2.ZERO
+	if editor_panel.size.x > 0 and editor_panel.size.y > 0:
+		norm_mouse = editor_panel.get_local_mouse_position() / editor_panel.size
+		
+	# 2. Map normalized position to debug_panel's size and transform into local draw space
+	var inv_transform = get_global_transform().affine_inverse()
 
 	var gap: float = 2.0
 	var line_length: float = 8.0
 	var line_width: float = 2.0
 	var crosshair_color: Color = Color.RED
 
-	# Left line
+	var origin_debug = inv_transform * text_selection_display.global_position
+	var draw_pos = origin_debug + (norm_mouse * text_selection_display.size)
 	draw_line(draw_pos - Vector2(gap + line_length, 0), draw_pos - Vector2(gap, 0), crosshair_color, line_width)
-	# Right line
 	draw_line(draw_pos + Vector2(gap, 0), draw_pos + Vector2(gap + line_length, 0), crosshair_color, line_width)
-	# Top line
 	draw_line(draw_pos - Vector2(0, gap + line_length), draw_pos - Vector2(0, gap), crosshair_color, line_width)
-	# Bottom line
+	draw_line(draw_pos + Vector2(0, gap), draw_pos + Vector2(0, gap + line_length), crosshair_color, line_width)
+	
+	origin_debug = inv_transform * selection_overlay_display.global_position
+	draw_pos = origin_debug + (norm_mouse * selection_overlay_display.size)
+	draw_line(draw_pos - Vector2(gap + line_length, 0), draw_pos - Vector2(gap, 0), crosshair_color, line_width)
+	draw_line(draw_pos + Vector2(gap, 0), draw_pos + Vector2(gap + line_length, 0), crosshair_color, line_width)
+	draw_line(draw_pos - Vector2(0, gap + line_length), draw_pos - Vector2(0, gap), crosshair_color, line_width)
 	draw_line(draw_pos + Vector2(0, gap), draw_pos + Vector2(0, gap + line_length), crosshair_color, line_width)
