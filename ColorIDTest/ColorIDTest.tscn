@@ -35,6 +35,7 @@ shader_parameter/mask_texture = SubResource("ViewportTexture_1wsbi")
 shader_parameter/selection_color = Color(0, 0.4, 0.9, 0.5)
 shader_parameter/caret_color = Color(1, 1, 1, 1)
 shader_parameter/caret_blink_speed = 2.0
+shader_parameter/caret_uv_offset = 0.009
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_caphx"]
 viewport_path = NodePath("Selection overlay")
